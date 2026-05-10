@@ -93,8 +93,10 @@ def analyze(candles: list[Candle], timeframe: str, cfg=None) -> Optional[Signal]
     if cfg is None:
         from config import config as cfg
 
-    if len(candles) < cfg.ema_trend + 5:
-        logger.warning("Not enough candles (%d) for analysis", len(candles))
+    # Need at least EMA21 seed + 2 bars to compute crossover
+    min_required = cfg.ema_slow + 2
+    if len(candles) < min_required:
+        logger.warning("Not enough candles (%d, need %d) for analysis", len(candles), min_required)
         return None
 
     closes = [c.close for c in candles]
@@ -121,8 +123,9 @@ def analyze(candles: list[Candle], timeframe: str, cfg=None) -> Optional[Signal]
     bb_lower = _last_valid(bb.lower)
     atr_val = _last_valid(atr_series)
 
-    if any(v is None for v in [ef, es, et, rsi_val, mhist, atr_val]):
-        logger.warning("Insufficient indicator data")
+    # et (EMA50) and mhist (MACD) may be None when candle count is low — handled below
+    if any(v is None for v in [ef, es, rsi_val, atr_val]):
+        logger.warning("Insufficient indicator data (EMA9/21, RSI, ATR required)")
         return None
 
     # Previous EMA values for crossover detection
@@ -150,13 +153,14 @@ def analyze(candles: list[Candle], timeframe: str, cfg=None) -> Optional[Signal]
             reasons.append(f"Death cross EMA{cfg.ema_fast}×{cfg.ema_slow} just happened!")
             bear_score += 2
 
-    # --- Price vs trend EMA ---
-    if price > et:
-        reasons.append(f"Price above EMA{cfg.ema_trend} (uptrend)")
-        bull_score += 1
-    else:
-        reasons.append(f"Price below EMA{cfg.ema_trend} (downtrend)")
-        bear_score += 1
+    # --- Price vs trend EMA (optional — skipped when candle count is low) ---
+    if et is not None:
+        if price > et:
+            reasons.append(f"Price above EMA{cfg.ema_trend} (uptrend)")
+            bull_score += 1
+        else:
+            reasons.append(f"Price below EMA{cfg.ema_trend} (downtrend)")
+            bear_score += 1
 
     # --- RSI ---
     if rsi_val < cfg.rsi_oversold:
@@ -174,19 +178,20 @@ def analyze(candles: list[Candle], timeframe: str, cfg=None) -> Optional[Signal]
         reasons.append(f"RSI {rsi_val:.1f} — bearish momentum")
         bear_score += 1
 
-    # --- MACD ---
-    if mhist > 0:
-        reasons.append("MACD histogram positive (bullish momentum)")
-        bull_score += 1
-        if mhist_prev is not None and mhist_prev <= 0:
-            reasons.append("MACD histogram just crossed above zero!")
+    # --- MACD (optional — needs 26+ candles) ---
+    if mhist is not None:
+        if mhist > 0:
+            reasons.append("MACD histogram positive (bullish momentum)")
             bull_score += 1
-    else:
-        reasons.append("MACD histogram negative (bearish momentum)")
-        bear_score += 1
-        if mhist_prev is not None and mhist_prev >= 0:
-            reasons.append("MACD histogram just crossed below zero!")
+            if mhist_prev is not None and mhist_prev <= 0:
+                reasons.append("MACD histogram just crossed above zero!")
+                bull_score += 1
+        else:
+            reasons.append("MACD histogram negative (bearish momentum)")
             bear_score += 1
+            if mhist_prev is not None and mhist_prev >= 0:
+                reasons.append("MACD histogram just crossed below zero!")
+                bear_score += 1
 
     # --- Bollinger Bands ---
     if bb_lower is not None and price <= bb_lower:
@@ -236,8 +241,8 @@ def analyze(candles: list[Candle], timeframe: str, cfg=None) -> Optional[Signal]
         rsi_value=rsi_val,
         ema_fast=ef,
         ema_slow=es,
-        ema_trend=et,
-        macd_hist=mhist,
+        ema_trend=et if et is not None else 0.0,
+        macd_hist=mhist if mhist is not None else 0.0,
         atr_value=atr_val,
         reasons=reasons,
         timeframe=timeframe,
