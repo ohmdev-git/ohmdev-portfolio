@@ -46,6 +46,15 @@ class Signal:
         r3 = abs(self.tp3 - self.entry) / risk
         return f"TP1={r1:.1f}R | TP2={r2:.1f}R | TP3={r3:.1f}R"
 
+    def hold_summary(self) -> str:
+        trend = "▲" if self.ema_fast > self.ema_slow else "▽"
+        return "\n".join([
+            f"⏳ *XAU/USD — HOLD {trend}*",
+            f"💵 Price: `${self.price:,.2f}`",
+            f"• RSI({14}): `{self.rsi_value:.1f}` | ATR: `{self.atr_value:.2f}`",
+            f"• EMA{9}/{21}: `{self.ema_fast:,.2f}` / `{self.ema_slow:,.2f}`",
+        ])
+
     def summary(self) -> str:
         direction = "LONG" if self.signal in (SignalType.BUY, SignalType.STRONG_BUY) else "SHORT"
         lines = [

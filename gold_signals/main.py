@@ -88,18 +88,19 @@ def run_analysis(force_notify: bool = False) -> Signal | None:
         signal.macd_hist,
     )
 
-    should_notify = force_notify or (
-        signal.signal != SignalType.HOLD and _cooldown_ok(signal)
-    )
+    should_notify = force_notify or _cooldown_ok(signal)
 
     if should_notify:
-        msg = signal.summary()
+        if signal.signal == SignalType.HOLD:
+            msg = signal.hold_summary()
+        else:
+            msg = signal.summary()
         results = notify_all(msg, config)
         channels = ", ".join(f"{k}={'✓' if v else '✗'}" for k, v in results.items()) or "stdout"
         logger.info("Notification sent → %s", channels)
         _save_state(signal.signal.name, time.time())
     else:
-        logger.info("HOLD — no notification sent")
+        logger.info("%s — in cooldown, no notification sent", signal.signal.name)
 
     return signal
 
