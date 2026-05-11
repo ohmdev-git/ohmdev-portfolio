@@ -1,5 +1,6 @@
 import requests
 import logging
+import time
 from typing import Optional
 from dataclasses import dataclass
 
@@ -19,19 +20,22 @@ class Candle:
 
 
 def fetch_candles(instrument: str, timeframe: str, limit: int = 50) -> list[Candle]:
-    """Fetch OHLCV candles from Crypto.com Exchange."""
+    """Fetch OHLCV candles from Crypto.com Exchange (JSON-RPC POST)."""
     url = f"{EXCHANGE_API}/public/get-candlestick"
-    params = {
-        "instrument_name": instrument,
-        "timeframe": timeframe,
+    payload = {
+        "id": 1,
+        "method": "public/get-candlestick",
+        "params": {
+            "instrument_name": instrument,
+            "timeframe": timeframe,
+        },
+        "nonce": int(time.time() * 1000),
     }
     try:
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.post(url, json=payload, timeout=10)
         resp.raise_for_status()
         data = resp.json()
         raw = data.get("result", {}).get("data", [])
-        if not raw:
-            raw = data.get("data", [])
         candles = [
             Candle(
                 timestamp=c.get("timestamp", c.get("t", "")),
@@ -55,11 +59,17 @@ def fetch_candles(instrument: str, timeframe: str, limit: int = 50) -> list[Cand
 def fetch_ticker(instrument: str) -> Optional[dict]:
     """Fetch current ticker for an instrument."""
     url = f"{EXCHANGE_API}/public/get-tickers"
+    payload = {
+        "id": 1,
+        "method": "public/get-tickers",
+        "params": {"instrument_name": instrument},
+        "nonce": int(time.time() * 1000),
+    }
     try:
-        resp = requests.get(url, params={"instrument_name": instrument}, timeout=10)
+        resp = requests.post(url, json=payload, timeout=10)
         resp.raise_for_status()
         data = resp.json()
-        tickers = data.get("result", {}).get("data", data.get("data", []))
+        tickers = data.get("result", {}).get("data", [])
         return tickers[0] if tickers else None
     except Exception as e:
         logger.error("Failed to fetch ticker for %s: %s", instrument, e)
