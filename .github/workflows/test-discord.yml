@@ -1,0 +1,32 @@
+name: Test Discord Webhook 🔔
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send test message to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "::error::DISCORD_WEBHOOK_URL secret is empty or not set"
+            exit 1
+          fi
+          echo "Webhook URL length: ${#DISCORD_WEBHOOK_URL}"
+          echo "Webhook starts with: ${DISCORD_WEBHOOK_URL:0:35}..."
+          response=$(curl -sS -w "\n%{http_code}" -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"username":"Gold Signal Bot","content":"✅ Test message from GitHub Actions — webhook is working!"}' \
+            "$DISCORD_WEBHOOK_URL")
+          body=$(echo "$response" | head -n -1)
+          status=$(echo "$response" | tail -n 1)
+          echo "HTTP status: $status"
+          echo "Response body: $body"
+          if [ "$status" != "204" ] && [ "$status" != "200" ]; then
+            echo "::error::Discord rejected the message (HTTP $status)"
+            exit 1
+          fi
+          echo "✅ Discord accepted the message"

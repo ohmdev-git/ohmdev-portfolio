@@ -1,5 +1,6 @@
 import requests
 import logging
+import time
 from typing import Optional
 from dataclasses import dataclass
 
@@ -19,34 +20,36 @@ class Candle:
 
 
 def fetch_candles(instrument: str, timeframe: str, limit: int = 50) -> list[Candle]:
-    """Fetch OHLCV candles from Crypto.com exchange."""
+    """Fetch OHLCV candles from Crypto.com Exchange (JSON-RPC POST)."""
     url = f"{EXCHANGE_API}/public/get-candlestick"
-    params = {
-        "instrument_name": instrument,
-        "timeframe": timeframe,
-        "count": min(limit, 50),
+    payload = {
+        "id": 1,
+        "method": "public/get-candlestick",
+        "params": {
+            "instrument_name": instrument,
+            "timeframe": timeframe,
+        },
+        "nonce": int(time.time() * 1000),
     }
     try:
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.post(url, json=payload, timeout=10)
         resp.raise_for_status()
         data = resp.json()
         raw = data.get("result", {}).get("data", [])
-        if not raw:
-            # Fallback key structure used by some endpoints
-            raw = data.get("data", [])
         candles = [
             Candle(
-                timestamp=c.get("t", c.get("timestamp", "")),
-                open=float(c.get("o", c.get("open", 0))),
-                high=float(c.get("h", c.get("high", 0))),
-                low=float(c.get("l", c.get("low", 0))),
-                close=float(c.get("c", c.get("close", 0))),
-                volume=float(c.get("v", c.get("volume", 0))),
+                timestamp=c.get("timestamp", c.get("t", "")),
+                open=float(c.get("open", c.get("o", 0))),
+                high=float(c.get("high", c.get("h", 0))),
+                low=float(c.get("low", c.get("l", 0))),
+                close=float(c.get("close", c.get("c", 0))),
+                volume=float(c.get("volume", c.get("v", 0))),
             )
             for c in raw
         ]
-        # Sort oldest → newest
         candles.sort(key=lambda c: c.timestamp)
+        candles = candles[-limit:]
+        logger.info("Fetched %d candles for %s (%s)", len(candles), instrument, timeframe)
         return candles
     except Exception as e:
         logger.error("Failed to fetch candles for %s/%s: %s", instrument, timeframe, e)
@@ -56,11 +59,17 @@ def fetch_candles(instrument: str, timeframe: str, limit: int = 50) -> list[Cand
 def fetch_ticker(instrument: str) -> Optional[dict]:
     """Fetch current ticker for an instrument."""
     url = f"{EXCHANGE_API}/public/get-tickers"
+    payload = {
+        "id": 1,
+        "method": "public/get-tickers",
+        "params": {"instrument_name": instrument},
+        "nonce": int(time.time() * 1000),
+    }
     try:
-        resp = requests.get(url, params={"instrument_name": instrument}, timeout=10)
+        resp = requests.post(url, json=payload, timeout=10)
         resp.raise_for_status()
         data = resp.json()
-        tickers = data.get("result", {}).get("data", data.get("data", []))
+        tickers = data.get("result", {}).get("data", [])
         return tickers[0] if tickers else None
     except Exception as e:
         logger.error("Failed to fetch ticker for %s: %s", instrument, e)

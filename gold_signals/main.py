@@ -69,6 +69,7 @@ def _cooldown_ok(sig: Signal) -> bool:
 
 def run_analysis(force_notify: bool = False) -> Signal | None:
     """Fetch data, analyze, and notify if signal warrants it."""
+    logger.info("Discord configured: %s", "YES" if config.discord_webhook_url else "NO — DISCORD_WEBHOOK_URL not set")
     logger.info("Fetching candles for %s (%s)…", config.instrument, config.primary_tf)
     candles = fetch_candles(config.instrument, config.primary_tf)
     if not candles:
@@ -88,18 +89,19 @@ def run_analysis(force_notify: bool = False) -> Signal | None:
         signal.macd_hist,
     )
 
-    should_notify = force_notify or (
-        signal.signal != SignalType.HOLD and _cooldown_ok(signal)
-    )
+    should_notify = force_notify or _cooldown_ok(signal)
 
     if should_notify:
-        msg = signal.summary()
+        if signal.signal == SignalType.HOLD:
+            msg = signal.hold_summary()
+        else:
+            msg = signal.summary()
         results = notify_all(msg, config)
         channels = ", ".join(f"{k}={'✓' if v else '✗'}" for k, v in results.items()) or "stdout"
         logger.info("Notification sent → %s", channels)
         _save_state(signal.signal.name, time.time())
     else:
-        logger.info("HOLD — no notification sent")
+        logger.info("%s — in cooldown, no notification sent", signal.signal.name)
 
     return signal
 
