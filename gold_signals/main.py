@@ -16,10 +16,10 @@ Environment variables (set in .env or export):
     SIGNAL_COOLDOWN      — Min seconds between same-direction signals (default 3600)
 """
 import argparse
+import json
 import logging
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 # Support running from within the gold_signals/ directory
@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from config import config
 from fetcher import fetch_candles, fetch_ticker
-from signal_engine import analyze, SignalType, Signal
+from signal_engine import analyze, Signal, SignalType
 from notifier import notify_all
 
 logging.basicConfig(
@@ -37,21 +37,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Track last signal sent to avoid duplicate spam
-_last_signal: dict[str, SignalType | None] = {"direction": None}
-_last_signal_time: dict[str, float] = {"ts": 0.0}
+# Persisted across GitHub Actions runs via cache
+_STATE_FILE = Path(__file__).parent / ".signal_state.json"
+
+
+def _load_state() -> dict:
+    try:
+        return json.loads(_STATE_FILE.read_text())
+    except Exception:
+        return {"direction": None, "ts": 0.0}
+
+
+def _save_state(direction: str, ts: float) -> None:
+    try:
+        _STATE_FILE.write_text(json.dumps({"direction": direction, "ts": ts}))
+    except Exception as e:
+        logger.warning("Could not save state: %s", e)
 
 
 def _cooldown_ok(sig: Signal) -> bool:
-    """Return True if enough time has passed since the last same-direction signal."""
+    state = _load_state()
     now = time.time()
-    if sig.signal == _last_signal["direction"]:
-        elapsed = now - _last_signal_time["ts"]
+    if sig.signal.name == state.get("direction") and state.get("ts", 0):
+        elapsed = now - state["ts"]
         if elapsed < config.signal_cooldown:
             remaining = int(config.signal_cooldown - elapsed)
-            logger.info(
-                "Signal %s already sent — cooldown %ds remaining", sig.signal.name, remaining
-            )
+            logger.info("Signal %s in cooldown — %ds remaining", sig.signal.name, remaining)
             return False
     return True
 
@@ -86,8 +97,7 @@ def run_analysis(force_notify: bool = False) -> Signal | None:
         results = notify_all(msg, config)
         channels = ", ".join(f"{k}={'✓' if v else '✗'}" for k, v in results.items()) or "stdout"
         logger.info("Notification sent → %s", channels)
-        _last_signal["direction"] = signal.signal
-        _last_signal_time["ts"] = time.time()
+        _save_state(signal.signal.name, time.time())
     else:
         logger.info("HOLD — no notification sent")
 
