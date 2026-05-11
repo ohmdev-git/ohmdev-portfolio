@@ -16,7 +16,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install -r gold_signals/requirements.txt
 
       # โหลด state จาก cache (จำ signal ล่าสุดข้ามรอบได้)
       - name: Restore signal state

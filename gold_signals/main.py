@@ -69,6 +69,7 @@ def _cooldown_ok(sig: Signal) -> bool:
 
 def run_analysis(force_notify: bool = False) -> Signal | None:
     """Fetch data, analyze, and notify if signal warrants it."""
+    logger.info("Discord configured: %s", "YES" if config.discord_webhook_url else "NO — DISCORD_WEBHOOK_URL not set")
     logger.info("Fetching candles for %s (%s)…", config.instrument, config.primary_tf)
     candles = fetch_candles(config.instrument, config.primary_tf)
     if not candles:
