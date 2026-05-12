@@ -44,5 +44,12 @@ class Config:
     # Signal cooldown - don't resend same signal within N seconds
     signal_cooldown: int = int(os.getenv("SIGNAL_COOLDOWN", "3600"))  # 1 hour
 
+    # ── AI-Trader (ai4trade.ai) ────────────────────────────────────────────────
+    ai_trader_enabled: bool = os.getenv("AI_TRADER_ENABLED", "false").lower() == "true"
+    ai_trader_email: Optional[str] = field(default_factory=lambda: os.getenv("AI_TRADER_EMAIL"))
+    ai_trader_password: Optional[str] = field(default_factory=lambda: os.getenv("AI_TRADER_PASSWORD"))
+    ai_trader_symbol: str = os.getenv("AI_TRADER_SYMBOL", "XAUUSD")
+    ai_trader_market_type: str = os.getenv("AI_TRADER_MARKET_TYPE", "crypto")
+
 
 config = Config()

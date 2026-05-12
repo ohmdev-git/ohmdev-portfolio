@@ -33,6 +33,11 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           LINE_NOTIFY_TOKEN: ${{ secrets.LINE_NOTIFY_TOKEN }}
           SIGNAL_COOLDOWN: '3600'   # ส่งซ้ำได้ทุก 1 ชั่วโมงถ้า signal ยังเหมือนเดิม
+          AI_TRADER_ENABLED: ${{ secrets.AI_TRADER_ENABLED || 'false' }}
+          AI_TRADER_EMAIL: ${{ secrets.AI_TRADER_EMAIL }}
+          AI_TRADER_PASSWORD: ${{ secrets.AI_TRADER_PASSWORD }}
+          AI_TRADER_SYMBOL: ${{ vars.AI_TRADER_SYMBOL || 'XAUUSD' }}
+          AI_TRADER_MARKET_TYPE: ${{ vars.AI_TRADER_MARKET_TYPE || 'crypto' }}
         run: |
           cd gold_signals
           python main.py --once

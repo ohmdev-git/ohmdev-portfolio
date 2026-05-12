@@ -29,6 +29,7 @@ from config import config
 from fetcher import fetch_candles, fetch_ticker
 from signal_engine import analyze, Signal, SignalType
 from notifier import notify_all
+from ai_trader import get_token, publish_signal_from_analysis, heartbeat
 
 logging.basicConfig(
     level=logging.INFO,
@@ -100,6 +101,17 @@ def run_analysis(force_notify: bool = False) -> Signal | None:
         channels = ", ".join(f"{k}={'✓' if v else '✗'}" for k, v in results.items()) or "stdout"
         logger.info("Notification sent → %s", channels)
         _save_state(signal.signal.name, time.time())
+
+        # Publish to AI-Trader platform
+        if config.ai_trader_enabled and config.ai_trader_email and config.ai_trader_password:
+            token = get_token(config.ai_trader_email, config.ai_trader_password)
+            if token:
+                ok = publish_signal_from_analysis(token, signal, config)
+                logger.info("AI-Trader publish: %s", "✓" if ok else "✗")
+            else:
+                logger.warning("AI-Trader: could not obtain token — skipping publish")
+        else:
+            logger.debug("AI-Trader not enabled — skipping publish")
     else:
         logger.info("%s — in cooldown, no notification sent", signal.signal.name)
 
@@ -160,6 +172,15 @@ def main():
         "✓" if config.line_notify_token else "✗",
     )
 
+    _ai_token: str | None = None
+    if config.ai_trader_enabled and config.ai_trader_email and config.ai_trader_password:
+        _ai_token = get_token(config.ai_trader_email, config.ai_trader_password)
+        if _ai_token:
+            logger.info("AI-Trader: connected as %s", config.ai_trader_email)
+
+    _last_heartbeat = 0.0
+    _heartbeat_interval = 45  # seconds
+
     while True:
         try:
             run_analysis()
@@ -168,6 +189,15 @@ def main():
             break
         except Exception as e:
             logger.exception("Unexpected error in analysis cycle: %s", e)
+
+        # Heartbeat polling (continuous mode only)
+        now = time.time()
+        if _ai_token and (now - _last_heartbeat) >= _heartbeat_interval:
+            try:
+                heartbeat(_ai_token)
+            except Exception as e:
+                logger.warning("AI-Trader heartbeat error: %s", e)
+            _last_heartbeat = now
 
         logger.info("Next check in %ds…", config.check_interval)
         try:
