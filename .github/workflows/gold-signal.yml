@@ -42,9 +42,8 @@ jobs:
           cd gold_signals
           python main.py --once
 
-      # Claude agent — runs only when ANTHROPIC_API_KEY is configured
+      # Claude agent — รันเฉพาะเมื่อตั้ง ANTHROPIC_API_KEY secret ไว้
       - name: Run Claude AI trading agent
-        if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           AI_TRADER_ENABLED: ${{ secrets.AI_TRADER_ENABLED || 'false' }}
@@ -54,4 +53,8 @@ jobs:
           AI_TRADER_MARKET_TYPE: ${{ vars.AI_TRADER_MARKET_TYPE || 'crypto' }}
         run: |
           cd gold_signals
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "ANTHROPIC_API_KEY not configured — skipping Claude agent"
+            exit 0
+          fi
           python agent.py

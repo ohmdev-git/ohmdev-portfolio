@@ -350,7 +350,7 @@ def main() -> None:
 
     if not os.getenv("ANTHROPIC_API_KEY"):
         logger.error("ANTHROPIC_API_KEY not set — cannot run Claude agent")
-        sys.exit(1)
+        sys.exit(0)
 
     dry_run = args.dry_run
     token: Optional[str] = None
