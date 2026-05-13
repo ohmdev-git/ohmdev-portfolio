@@ -2,7 +2,7 @@
 
 Usage:
     python backtest.py          # print summary to stdout
-    python backtest.py --html   # generate docs/backtest.html
+    python backtest.py --html   # generate docs/index.html
 """
 import argparse
 import json
@@ -762,7 +762,7 @@ def main():
         out_dir = os.path.join(os.path.dirname(__file__), "..", "docs")
         out_dir = os.path.normpath(out_dir)
         os.makedirs(out_dir, exist_ok=True)
-        out_path = os.path.join(out_dir, "backtest.html")
+        out_path = os.path.join(out_dir, "index.html")
 
         html = generate_html(trades, metrics, candles)
         with open(out_path, "w", encoding="utf-8") as f:
