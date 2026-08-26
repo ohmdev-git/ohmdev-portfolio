@@ -29,6 +29,7 @@ from config import config
 from fetcher import fetch_candles, fetch_ticker
 from signal_engine import analyze, Signal, SignalType
 from notifier import notify_all
+from ai_trader import get_token, publish_signal_from_analysis, heartbeat
 
 logging.basicConfig(
     level=logging.INFO,
@@ -42,68 +43,80 @@ _STATE_FILE = Path(__file__).parent / ".signal_state.json"
 
 
 def _load_state() -> dict:
+    """State is keyed per-timeframe: {"5m": {"direction":..,"ts":..}, "1h": {...}}."""
     try:
-        return json.loads(_STATE_FILE.read_text())
+        data = json.loads(_STATE_FILE.read_text())
+        return data if isinstance(data, dict) else {}
     except Exception:
-        return {"direction": None, "ts": 0.0}
+        return {}
 
 
-def _save_state(direction: str, ts: float) -> None:
+def _save_state(state: dict) -> None:
     try:
-        _STATE_FILE.write_text(json.dumps({"direction": direction, "ts": ts}))
+        _STATE_FILE.write_text(json.dumps(state))
     except Exception as e:
         logger.warning("Could not save state: %s", e)
 
 
-def _cooldown_ok(sig: Signal) -> bool:
-    state = _load_state()
+def _cooldown_ok(sig: Signal, tf: str, state: dict) -> bool:
+    tf_state = state.get(tf, {})
     now = time.time()
-    if sig.signal.name == state.get("direction") and state.get("ts", 0):
-        elapsed = now - state["ts"]
-        if elapsed < config.signal_cooldown:
-            remaining = int(config.signal_cooldown - elapsed)
-            logger.info("Signal %s in cooldown — %ds remaining", sig.signal.name, remaining)
+    if sig.signal.name == tf_state.get("direction") and tf_state.get("ts", 0):
+        elapsed = now - tf_state["ts"]
+        cd = config.cooldown_for(tf)
+        if elapsed < cd:
+            remaining = int(cd - elapsed)
+            logger.info("[%s] Signal %s in cooldown — %ds remaining", tf, sig.signal.name, remaining)
             return False
     return True
 
 
-def run_analysis(force_notify: bool = False) -> Signal | None:
-    """Fetch data, analyze, and notify if signal warrants it."""
+def run_analysis(force_notify: bool = False) -> None:
+    """Fetch data, analyze, and notify — once per configured timeframe."""
     logger.info("Discord configured: %s", "YES" if config.discord_webhook_url else "NO — DISCORD_WEBHOOK_URL not set")
-    logger.info("Fetching candles for %s (%s)…", config.instrument, config.primary_tf)
-    candles = fetch_candles(config.instrument, config.primary_tf)
-    if not candles:
-        logger.error("No candle data received — skipping cycle")
-        return None
+    logger.info("Timeframes: %s", ", ".join(config.signal_timeframes))
 
-    signal = analyze(candles, config.primary_tf, config)
-    if signal is None:
-        logger.warning("Could not generate signal (insufficient data)")
-        return None
+    state = _load_state()
+    ai_token: str | None = None
 
-    logger.info(
-        "Signal: %s | Price: %.2f | RSI: %.1f | MACD: %+.4f",
-        signal.signal.name,
-        signal.price,
-        signal.rsi_value,
-        signal.macd_hist,
-    )
+    for tf in config.signal_timeframes:
+        logger.info("[%s] Fetching candles for %s…", tf, config.instrument)
+        candles = fetch_candles(config.instrument, tf)
+        if not candles:
+            logger.error("[%s] No candle data received — skipping", tf)
+            continue
 
-    should_notify = force_notify or _cooldown_ok(signal)
+        signal = analyze(candles, tf, config)
+        if signal is None:
+            logger.warning("[%s] Could not generate signal (insufficient data)", tf)
+            continue
 
-    if should_notify:
-        if signal.signal == SignalType.HOLD:
-            msg = signal.hold_summary()
-        else:
-            msg = signal.summary()
+        logger.info(
+            "[%s] Signal: %s | Price: %.2f | RSI: %.1f | MACD: %+.4f",
+            tf, signal.signal.name, signal.price, signal.rsi_value, signal.macd_hist,
+        )
+
+        if not (force_notify or _cooldown_ok(signal, tf, state)):
+            logger.info("[%s] %s — in cooldown, no notification sent", tf, signal.signal.name)
+            continue
+
+        msg = signal.hold_summary() if signal.signal == SignalType.HOLD else signal.summary()
         results = notify_all(msg, config)
         channels = ", ".join(f"{k}={'✓' if v else '✗'}" for k, v in results.items()) or "stdout"
-        logger.info("Notification sent → %s", channels)
-        _save_state(signal.signal.name, time.time())
-    else:
-        logger.info("%s — in cooldown, no notification sent", signal.signal.name)
+        logger.info("[%s] Notification sent → %s", tf, channels)
+        state[tf] = {"direction": signal.signal.name, "ts": time.time()}
 
-    return signal
+        # Publish to AI-Trader platform (reuse one token across timeframes)
+        if config.ai_trader_enabled and config.ai_trader_email and config.ai_trader_password:
+            if ai_token is None:
+                ai_token = get_token(config.ai_trader_email, config.ai_trader_password)
+            if ai_token:
+                ok = publish_signal_from_analysis(ai_token, signal, config)
+                logger.info("[%s] AI-Trader publish: %s", tf, "✓" if ok else "✗")
+            else:
+                logger.warning("[%s] AI-Trader: could not obtain token — skipping publish", tf)
+
+    _save_state(state)
 
 
 def test_notification():
@@ -149,8 +162,9 @@ def main():
 
     # Continuous mode
     logger.info(
-        "Gold Signal Bot started — checking %s every %ds",
+        "Gold Signal Bot started — checking %s [%s] every %ds",
         config.instrument,
+        ", ".join(config.signal_timeframes),
         config.check_interval,
     )
     logger.info(
@@ -160,6 +174,15 @@ def main():
         "✓" if config.line_notify_token else "✗",
     )
 
+    _ai_token: str | None = None
+    if config.ai_trader_enabled and config.ai_trader_email and config.ai_trader_password:
+        _ai_token = get_token(config.ai_trader_email, config.ai_trader_password)
+        if _ai_token:
+            logger.info("AI-Trader: connected as %s", config.ai_trader_email)
+
+    _last_heartbeat = 0.0
+    _heartbeat_interval = 45  # seconds
+
     while True:
         try:
             run_analysis()
@@ -168,6 +191,15 @@ def main():
             break
         except Exception as e:
             logger.exception("Unexpected error in analysis cycle: %s", e)
+
+        # Heartbeat polling (continuous mode only)
+        now = time.time()
+        if _ai_token and (now - _last_heartbeat) >= _heartbeat_interval:
+            try:
+                heartbeat(_ai_token)
+            except Exception as e:
+                logger.warning("AI-Trader heartbeat error: %s", e)
+            _last_heartbeat = now
 
         logger.info("Next check in %ds…", config.check_interval)
         try:
