@@ -8,23 +8,24 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Woodshed — Learn any song by ear</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2309090b'/%3E%3Cpath d='M7 20V12M12 23V9M17 19v-6M22 22V10' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='16' r='2.4' fill='%23ff3b30'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/app.css?v=202611260109">
+<link rel="stylesheet" href="css/app.css?v=202611260618">
 </head>
 <body>
-<div class="banner" id="fileWarn" hidden>You opened this page as a local file. YouTube blocks playback from local files. Host it (e.g. GitHub Pages) or run a local web server.</div>
+<div class="banner" id="fileWarn" hidden data-i18n="fileWarn">You opened this page as a local file. YouTube blocks playback from local files. Host it (e.g. GitHub Pages) or run a local web server.</div>
 <header>
   <div class="hwrap">
-    <a class="brand" href="./" aria-label="Woodshed home">
+    <a class="brand" href="./" aria-label="Woodshed">
       <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#17171b" stroke="#34343c"/><path d="M7 20V12M12 23V9M17 19v-6M22 22V10" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="26" cy="16" r="2.4" fill="#ff3b30"/></svg>
-      <span><b>WOODSHED</b><small>Learn any song by ear</small></span>
+      <span><b>WOODSHED</b><small data-i18n="brand.tag">Learn any song by ear</small></span>
     </a>
     <form class="url" id="urlForm" autocomplete="off">
       <label class="field">
         <svg class="i" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
-        <input id="url" type="text" inputmode="url" placeholder="Paste a YouTube link…" aria-label="YouTube link" spellcheck="false">
+        <input id="url" type="text" inputmode="url" placeholder="Paste a YouTube link…" data-i18n-ph="url.ph" aria-label="YouTube link" data-i18n-aria="url.aria" spellcheck="false">
       </label>
-      <button class="btn pri" type="submit">Load</button>
+      <button class="btn pri" type="submit" data-i18n="load">Load</button>
     </form>
+    <div class="langs" role="group" aria-label="Language" data-i18n-aria="lang.aria"><button data-lang="en">EN</button><button data-lang="th">ไทย</button></div>
   </div>
 </header>
 
@@ -35,30 +36,31 @@
       <div class="over" id="over">
         <div>
           <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-          <h1 id="overTitle">Hit the shed.</h1>
-          <p id="overText">Paste a YouTube link above, mark the part you want to learn, slow it down, and loop it until it's in your hands.</p>
+          <h1 id="overTitle" data-i18n="intro.title">Hit the shed.</h1>
+          <p id="overText" data-i18n="intro.text">Paste a YouTube link above, mark the part you want to learn, slow it down, and loop it until it's in your hands.</p>
           <div class="acts" id="overActs" hidden></div>
           <div class="code" id="overCode"></div>
-          <div class="steps" id="steps"><span><b>1</b>Paste link</span><span><b>2</b>Set A–B</span><span><b>3</b>Slow it down</span></div>
+          <div class="steps" id="steps"><span><b>1</b><i data-i18n="step1">Paste link</i></span><span><b>2</b><i data-i18n="step2">Set A–B</i></span><span><b>3</b><i data-i18n="step3">Slow it down</i></span></div>
         </div>
       </div>
+      <div class="cbadge" id="cbadge" hidden><b id="cbNum">1</b><span id="cbText"></span></div>
     </div>
     <div class="transport">
       <div class="songTitle" id="songTitle">No song loaded</div>
       <div class="trow">
         <div class="tc num"><span id="now">0:00.0</span><small id="dur">/ 0:00.0</small></div>
         <div class="ctrls">
-          <button class="btn sq ghost" id="b5" title="Back 5s" aria-label="Back 5 seconds"><svg class="i" viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button>
-          <button class="btn sq ghost" id="b2" title="Back 2s (←)" aria-label="Back 2 seconds"><svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-          <button class="play" id="play" title="Play / Pause (Space)" aria-label="Play"><svg viewBox="0 0 24 24" id="playIco"><path d="M8 5.5v13l11-6.5z"/></svg></button>
-          <button class="btn sq ghost" id="f2" title="Forward 2s (→)" aria-label="Forward 2 seconds"><svg class="i" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
-          <button class="btn sq ghost" id="f5" title="Forward 5s" aria-label="Forward 5 seconds"><svg class="i" viewBox="0 0 24 24"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg></button>
+          <button class="btn sq ghost" id="b5" data-i18n-title="back5.t" data-i18n-aria="back5"><svg class="i" viewBox="0 0 24 24"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></button>
+          <button class="btn sq ghost" id="b2" data-i18n-title="back2.t" data-i18n-aria="back2"><svg class="i" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <button class="play" id="play" data-i18n-title="play.t" aria-label="Play"><svg viewBox="0 0 24 24" id="playIco"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+          <button class="btn sq ghost" id="f2" data-i18n-title="fwd2.t" data-i18n-aria="fwd2"><svg class="i" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+          <button class="btn sq ghost" id="f5" data-i18n-title="fwd5.t" data-i18n-aria="fwd5"><svg class="i" viewBox="0 0 24 24"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg></button>
         </div>
         <div class="stat num" id="stat"><b id="loopState">Loop off</b><span id="loopCount">0 reps</span></div>
       </div>
       <div class="mini" id="mini" hidden aria-hidden="true"><div class="miniWin" id="miniWin"></div><div class="miniHead" id="miniHead"></div></div>
-      <div class="lane" id="lane" aria-label="Markers"></div>
-      <div class="track" id="track" aria-label="Timeline: click to seek, drag to select a loop">
+      <div class="lane" id="lane" data-i18n-aria="markers.aria"></div>
+      <div class="track" id="track" data-i18n-aria="timeline.aria">
         <div class="prog" id="prog"></div>
         <div class="region" id="region"></div>
         <div class="hdl" id="hA" data-h="a"><span>A</span></div>
@@ -68,117 +70,149 @@
         <span class="vlab num" id="vs"></span><span class="vlab r num" id="ve"></span>
       </div>
       <div class="tfoot">
-        <div class="hint">Click to jump · drag to select a loop · drag the A / B tabs to fine-tune</div>
+        <div class="hint" data-i18n="timeline.hint">Click to jump · drag to select a loop · drag the A / B tabs to fine-tune</div>
         <div class="tbtns">
-          <button class="btn ghost small" id="mkAddT" title="Add a marker at the playhead (M)"><svg class="i" viewBox="0 0 24 24"><path d="M6 21V4M6 4h11l-2.5 4L17 12H6"/></svg>Marker</button>
-          <button class="btn ghost small" id="zoomBtn" aria-pressed="false" title="Zoom the timeline to the loop (Z)" disabled><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M11 8v6M8 11h6"/></svg>Zoom</button>
+          <button class="btn ghost small" id="mkAddT" data-i18n-title="marker.t"><svg class="i" viewBox="0 0 24 24"><path d="M6 21V4M6 4h11l-2.5 4L17 12H6"/></svg><span data-i18n="marker">Marker</span></button>
+          <button class="btn ghost small" id="zoomBtn" aria-pressed="false" data-i18n-title="zoom.t" disabled><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M11 8v6M8 11h6"/></svg><span data-i18n="zoom">Zoom</span></button>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="card lib" aria-label="Playlist and history">
+  <section class="card lib" data-i18n-aria="lib.aria">
     <div class="tabs" role="tablist">
-      <button role="tab" id="tabPl" class="on" aria-selected="true">Playlist <span id="plTabCount" class="num"></span></button>
-      <button role="tab" id="tabRc" aria-selected="false">Recent</button>
+      <button role="tab" id="tabPl" class="on" aria-selected="true"><span data-i18n="tab.pl">Playlist</span> <span id="plTabCount" class="num"></span></button>
+      <button role="tab" id="tabRc" aria-selected="false" data-i18n="tab.rc">Recent</button>
       <div class="tabs-r">
-        <button class="btn sq ghost" id="plPrev" title="Previous song (P)" aria-label="Previous song"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14M18 6l-9 6 9 6z"/></svg></button>
-        <button class="btn sq ghost" id="plNext" title="Next song (N)" aria-label="Next song"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14M6 6l9 6-9 6z"/></svg></button>
+        <button class="btn sq ghost" id="plPrev" data-i18n-title="prevSong.t" data-i18n-aria="prevSong"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14M18 6l-9 6 9 6z"/></svg></button>
+        <button class="btn sq ghost" id="plNext" data-i18n-title="nextSong.t" data-i18n-aria="nextSong"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14M6 6l9 6-9 6z"/></svg></button>
       </div>
     </div>
     <div id="plPane" class="pane">
       <form class="save" id="plForm" autocomplete="off">
-        <input id="plIn" type="text" placeholder="Paste song or playlist links (many at once)" aria-label="Add songs to playlist" spellcheck="false">
-        <button class="btn pri" type="submit" id="plAddBtn">Add</button>
+        <input id="plIn" type="text" data-i18n-ph="pl.ph" data-i18n-aria="pl.aria" spellcheck="false">
+        <button class="btn pri" type="submit" id="plAddBtn" data-i18n="add">Add</button>
       </form>
       <div class="pltools">
         <span class="hint num" id="plCount"></span>
-        <button class="btn ghost small" id="plAddCur">+ Current song</button>
-        <span id="plTools" hidden><button class="btn ghost small" id="plClearDone">Remove learned</button><button class="btn ghost small" id="plClear">Clear</button></span>
+        <button class="btn ghost small" id="plAddCur" data-i18n="pl.addCur">+ Current song</button>
+        <span id="plTools" hidden><button class="btn ghost small" id="plClearDone" data-i18n="pl.clearDone">Remove learned</button><button class="btn ghost small" id="plClear" data-i18n="clear">Clear</button></span>
       </div>
       <ol class="plist" id="plList"></ol>
-      <div class="empty" id="plEmpty">Planning a practice session? Paste all the links here — you can copy several at once — then tap a song to start.</div>
+      <div class="empty" id="plEmpty" data-i18n="pl.empty"></div>
     </div>
     <div id="rcPane" class="pane" hidden>
       <ol class="plist" id="rcList"></ol>
-      <div class="empty" id="rcEmpty" hidden>Songs you open will show up here.</div>
-      <div class="pltools"><button class="btn ghost small" id="rcClear">Clear history</button></div>
+      <div class="empty" id="rcEmpty" hidden data-i18n="rc.empty"></div>
+      <div class="pltools"><button class="btn ghost small" id="rcClear" data-i18n="rc.clear">Clear history</button></div>
     </div>
   </section>
 
   <aside class="side">
     <div class="card">
-      <div class="ch"><h2>Speed</h2><span class="hint" style="margin:0">Pitch stays the same</span></div>
+      <div class="ch"><h2 data-i18n="speed">Speed</h2><span class="hint" style="margin:0" data-i18n="pitchSame">Pitch stays the same</span></div>
       <div class="speed">
-        <button class="btn sq" id="spDown" aria-label="Slower 5%">−</button>
+        <button class="btn sq" id="spDown" data-i18n-aria="slower5">−</button>
         <div class="spv num"><span id="spv">100%</span><small id="spx">original speed</small></div>
-        <button class="btn sq" id="spUp" aria-label="Faster 5%">+</button>
+        <button class="btn sq" id="spUp" data-i18n-aria="faster5">+</button>
       </div>
-      <input type="range" id="sp" min="25" max="200" step="5" value="100" aria-label="Playback speed">
+      <input type="range" id="sp" min="25" max="200" step="5" value="100" data-i18n-aria="speed.aria">
       <div class="chips" id="chips"></div>
+      <div class="sub">
+        <div class="subh"><span data-i18n="trainer">Speed trainer</span><button class="switch" id="trOn" role="switch" aria-checked="false" data-i18n-aria="trainer"><i></i></button></div>
+        <div class="trgrid">
+          <label><span data-i18n="trainer.from">Start</span><select id="trFrom"></select></label>
+          <label><span data-i18n="trainer.to">Goal</span><select id="trTo"></select></label>
+          <label><span data-i18n="trainer.step">Step</span><select id="trStep"></select></label>
+          <label><span data-i18n="trainer.every">Every</span><select id="trEvery"></select></label>
+        </div>
+        <div class="trbar"><i id="trFill"></i></div>
+        <div class="hint" id="trStatus"></div>
+      </div>
+    </div>
+
+    <div class="card" id="metCard">
+      <div class="ch"><h2 data-i18n="metronome">Metronome</h2><span class="hint num" style="margin:0" id="metEff"></span></div>
+      <div class="speed">
+        <button class="btn sq" id="bpmDown" data-i18n-aria="bpmDown">−</button>
+        <div class="spv num"><input id="bpmIn" type="number" min="30" max="300" step="1" value="120" inputmode="numeric" data-i18n-aria="bpm.aria"><small data-i18n="bpm">BPM</small></div>
+        <button class="btn sq" id="bpmUp" data-i18n-aria="bpmUp">+</button>
+      </div>
+      <div class="beats" id="beatDots" aria-hidden="true"></div>
+      <div class="row">
+        <button class="btn" id="metBtn" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M9 3h6l3 18H6zM12 17l5-11"/></svg><span data-i18n="met.start">Start click</span></button>
+        <button class="btn" id="tapBtn"><span id="tapTxt" data-i18n="tap">Tap tempo</span></button>
+      </div>
+      <div class="seg" id="meterSeg"><span data-i18n="beats">Beats per bar</span><button data-b="2">2</button><button data-b="3">3</button><button data-b="4" class="on">4</button><button data-b="6">6</button></div>
+      <label class="tog"><input type="checkbox" id="metFollow" checked><span data-i18n="met.follow">Match video speed</span></label>
+      <label class="tog"><input type="checkbox" id="metRealign" checked><span data-i18n="met.realign">Beat 1 at loop start each rep</span></label>
+      <label class="vol"><span data-i18n="volume">Volume</span><input type="range" id="metVol" min="0" max="100" value="70" data-i18n-aria="volume"></label>
     </div>
 
     <div class="card">
-      <div class="ch"><h2>Loop</h2><button class="btn ghost" id="clr" style="height:30px;font-size:13px">Clear</button></div>
+      <div class="ch"><h2 data-i18n="loop">Loop</h2><button class="btn ghost" id="clr" style="height:30px;font-size:13px" data-i18n="clear">Clear</button></div>
       <div class="ab">
         <div class="pt">
           <span class="tag">A</span><span class="t num none" id="at">not set</span>
-          <button class="btn sq" data-n="a,-0.1" aria-label="Move A earlier">−</button>
-          <button class="btn sq" data-n="a,0.1" aria-label="Move A later">+</button>
-          <button class="btn" id="setA" title="Set A at playhead (A)">Set</button>
+          <button class="btn sq" data-n="a,-0.1" data-i18n-aria="aEarlier">−</button>
+          <button class="btn sq" data-n="a,0.1" data-i18n-aria="aLater">+</button>
+          <button class="btn" id="setA" data-i18n-title="setA.t" data-i18n="set">Set</button>
         </div>
         <div class="pt">
           <span class="tag">B</span><span class="t num none" id="bt">not set</span>
-          <button class="btn sq" data-n="b,-0.1" aria-label="Move B earlier">−</button>
-          <button class="btn sq" data-n="b,0.1" aria-label="Move B later">+</button>
-          <button class="btn" id="setB" title="Set B at playhead (B)">Set</button>
+          <button class="btn sq" data-n="b,-0.1" data-i18n-aria="bEarlier">−</button>
+          <button class="btn sq" data-n="b,0.1" data-i18n-aria="bLater">+</button>
+          <button class="btn" id="setB" data-i18n-title="setB.t" data-i18n="set">Set</button>
         </div>
       </div>
-      <div class="seg" id="stepSeg"><span>Fine-tune step</span><button data-step="0.01">0.01s</button><button data-step="0.05">0.05s</button><button data-step="0.1" class="on">0.1s</button><button data-step="0.5">0.5s</button></div>
+      <div class="seg" id="stepSeg"><span data-i18n="fineStep">Fine-tune step</span><button data-step="0.01">0.01s</button><button data-step="0.05">0.05s</button><button data-step="0.1" class="on">0.1s</button><button data-step="0.5">0.5s</button></div>
       <div class="row">
         <button class="btn" id="loopBtn" aria-pressed="false"><svg class="i" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg><span>Loop</span></button>
-        <button class="btn" id="toA" title="Jump to A (Q)">Jump to A</button>
+        <button class="btn" id="toA" data-i18n-title="jumpA.t" data-i18n="jumpA">Jump to A</button>
       </div>
-      <div class="seg" id="gap"><span>Pause between reps</span><button data-g="0" class="on">None</button><button data-g="1">1s</button><button data-g="2">2s</button><button data-g="3">3s</button></div>
+      <div class="seg" id="gap"><span data-i18n="gap">Pause between reps</span><button data-g="0" class="on" data-i18n="none">None</button><button data-g="1">1s</button><button data-g="2">2s</button><button data-g="3">3s</button></div>
+      <div class="seg" id="ciSeg"><span data-i18n="countIn">Count-in</span><button data-ci="0" class="on" data-i18n="off">Off</button><button data-ci="1" id="ci1"></button><button data-ci="2" id="ci2"></button></div>
     </div>
 
     <div class="card">
-      <div class="ch"><h2>Saved sections</h2><button class="btn ghost" id="share" style="height:30px;font-size:13px"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>Copy loop link</button></div>
+      <div class="ch"><h2 data-i18n="sections">Saved sections</h2><button class="btn ghost" id="share" style="height:30px;font-size:13px"><svg class="i" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span data-i18n="copyLink">Copy loop link</span></button></div>
       <form class="save" id="saveForm" autocomplete="off">
-        <input id="secName" type="text" maxlength="40" placeholder="Name it — e.g. Solo, bar 1–4" aria-label="Section name">
-        <button class="btn pri" type="submit" id="saveBtn">Save</button>
+        <input id="secName" type="text" maxlength="40" data-i18n-ph="sec.ph" data-i18n-aria="sec.aria">
+        <button class="btn pri" type="submit" id="saveBtn" data-i18n="save">Save</button>
       </form>
       <ul class="secs" id="secs"></ul>
-      <div class="empty" id="secEmpty">Set A and B, then save the part so you can come back to it. Tap the pencil to keep chords or tab with it.</div>
+      <div class="empty" id="secEmpty" data-i18n="sec.empty"></div>
     </div>
 
     <div class="card">
-      <div class="ch"><h2>Markers</h2><button class="btn ghost" id="mkAdd" style="height:30px;font-size:13px" title="Add at playhead (M)">+ Add at playhead</button></div>
+      <div class="ch"><h2 data-i18n="markers">Markers</h2><button class="btn ghost" id="mkAdd" style="height:30px;font-size:13px" data-i18n-title="mk.add.t" data-i18n="mk.add">+ Add at playhead</button></div>
       <ul class="mks" id="mkList"></ul>
-      <div class="empty" id="mkEmpty">Mark where the intro, verse, chorus and solo start. Tap the loop icon to practise one part.</div>
-      <datalist id="mkNames"><option value="Intro"><option value="Verse"><option value="Pre-chorus"><option value="Chorus"><option value="Bridge"><option value="Solo"><option value="Riff"><option value="Interlude"><option value="Outro"></datalist>
+      <div class="empty" id="mkEmpty" data-i18n="mk.empty"></div>
+      <datalist id="mkNames"></datalist>
     </div>
 
     <div class="card keys-card">
-      <div class="ch"><h2>Shortcuts</h2></div>
+      <div class="ch"><h2 data-i18n="shortcuts">Shortcuts</h2></div>
       <div class="keys">
-        <kbd>Space</kbd><span>Play / pause</span>
-        <kbd>← →</kbd><span>Back / forward 2s (Shift: 5s)</span>
-        <kbd>A</kbd><span>Set A at playhead</span>
-        <kbd>B</kbd><span>Set B and start looping</span>
-        <kbd>L</kbd><span>Loop on / off</span>
-        <kbd>Q</kbd><span>Jump to A</span>
-        <kbd>Z</kbd><span>Zoom timeline to the loop</span>
-        <kbd>M</kbd><span>Add marker</span>
-        <kbd>N</kbd> <span>Next song · <kbd>P</kbd> previous</span>
-        <kbd>[ ]</kbd><span>Slower / faster 5%</span>
-        <kbd>3 – 9 · 0</kbd><span>Speed 30% – 90% · 100%</span>
+        <kbd>Space</kbd><span data-i18n="k.play"></span>
+        <kbd>← →</kbd><span data-i18n="k.seek"></span>
+        <kbd>A</kbd><span data-i18n="k.a"></span>
+        <kbd>B</kbd><span data-i18n="k.b"></span>
+        <kbd>L</kbd><span data-i18n="k.l"></span>
+        <kbd>Q</kbd><span data-i18n="k.q"></span>
+        <kbd>Z</kbd><span data-i18n="k.z"></span>
+        <kbd>M</kbd><span data-i18n="k.m"></span>
+        <kbd>N · P</kbd><span><i data-i18n="k.n"></i> · <i data-i18n="k.p"></i></span>
+        <kbd>K</kbd><span data-i18n="k.k"></span>
+        <kbd>T</kbd><span data-i18n="k.t"></span>
+        <kbd>[ ]</kbd><span data-i18n="k.speed"></span>
+        <kbd>3 – 9 · 0</kbd><span data-i18n="k.num"></span>
       </div>
     </div>
   </aside>
 </main>
-<footer>Woodshed plays videos through YouTube's official embedded player. Your playlist, history and saved parts stay in this browser only. Some videos (often official music videos) don't allow embedding.</footer>
+<footer data-i18n="footer"></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script type="module" src="js/main.js?v=202611260109"></script>
+<script type="module" src="js/main.js?v=202611260618"></script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 // Playlist (songs to learn today) + Recent history + title cache (YouTube oEmbed).
-import { $, esc, store, toast, ago, parseMany, isId, clamp } from './util.js?v=202611260109';
-import { count as secCount } from './sections.js?v=202611260109';
+import { $, esc, store, toast, ago, parseMany, isId, clamp } from './util.js?v=202611260618';
+import { t as tr } from './i18n.js?v=202611260618';
+import { count as secCount } from './sections.js?v=202611260618';
 
 const K_PL = 'woodshed:playlist', K_RC = 'woodshed:recent', K_TI = 'woodshed:titles';
 const MAX_PL = 300, MAX_RC = 40, MAX_TI = 600;
@@ -66,10 +67,10 @@ function addIds(ids) {
 }
 function sayAdded(r, extra) {
   const parts = [];
-  if (r.added) parts.push(r.added + (r.added === 1 ? ' song added' : ' songs added'));
-  if (r.dup) parts.push(r.dup + ' already in playlist');
+  if (r.added) parts.push(tr('added', { n: r.added }));
+  if (r.dup) parts.push(tr('dups', { n: r.dup }));
   if (extra) parts.push(extra);
-  toast(parts.join(' · ') || 'Nothing added');
+  toast(parts.join(' · ') || tr('nothingAdded'));
 }
 // read a YouTube playlist through a hidden player (no API key needed)
 function importList(list) {
@@ -113,29 +114,29 @@ function waitApi() {
 }
 async function addFromText(text) {
   const { videos, lists, bad } = parseMany(text);
-  if (!videos.length && !lists.length) { toast(bad ? 'No YouTube links found in that text' : 'Paste one or more YouTube links'); return false; }
+  if (!videos.length && !lists.length) { toast(tr(bad ? 'noLinks' : 'pasteLinks')); return false; }
   const r = addIds(videos.map(v => v.id));
-  let extra = bad ? bad + ' not recognised' : '';
+  let extra = bad ? tr('notRecognised', { n: bad }) : '';
   if (lists.length) {
-    $('plAddBtn').disabled = true; $('plAddBtn').textContent = 'Importing…';
+    $('plAddBtn').disabled = true; $('plAddBtn').textContent = tr('importing');
     await waitApi();
     let got = 0, failed = 0;
     for (const l of lists) {
       const ids = await importList(l);
       if (ids && ids.length) { const q = addIds(ids); r.added += q.added; r.dup += q.dup; got++; } else failed++;
     }
-    $('plAddBtn').disabled = false; $('plAddBtn').textContent = 'Add';
-    if (failed) extra = (extra ? extra + ' · ' : '') + (failed === 1 ? 'couldn’t read the playlist (private or empty?)' : failed + ' playlists couldn’t be read');
+    $('plAddBtn').disabled = false; $('plAddBtn').textContent = tr('add');
+    if (failed) extra = (extra ? extra + ' · ' : '') + (failed === 1 ? tr('plReadFail') : tr('plsReadFail', { n: failed }));
   }
   sayAdded(r, extra);
   return true;
 }
 export function step(dir) {
   const L = getPL();
-  if (!L.length) { toast('Your playlist is empty'); return; }
+  if (!L.length) { toast(tr('plEmptyToast')); return; }
   const i = L.findIndex(x => x.id === S.vid);
   const j = i < 0 ? (dir > 0 ? 0 : L.length - 1) : i + dir;
-  if (j < 0 || j >= L.length) { toast(dir > 0 ? 'That was the last song' : 'That’s the first song'); return; }
+  if (j < 0 || j >= L.length) { toast(tr(dir > 0 ? 'lastSong' : 'firstSong')); return; }
   app.openVideo(L[j].id);
 }
 
@@ -143,7 +144,7 @@ export function step(dir) {
 let rT = 0;
 // timer, not requestAnimationFrame: rAF pauses in background tabs, which left titles stuck on “Loading…”
 function scheduleRender() { clearTimeout(rT); rT = setTimeout(render, 60); }
-const shown = id => titleOf(id) || (failedAt[id] ? 'YouTube video · ' + id : 'Loading title…');
+const shown = id => titleOf(id) || (failedAt[id] ? tr('videoId', { id }) : tr('loadingTitle'));
 const thumb = id => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
 let dragging = false;
 function render() {
@@ -151,18 +152,18 @@ function render() {
   const L = getPL();
   const done = L.filter(x => x.done).length;
   $('plTabCount').textContent = L.length ? `(${L.length})` : '';
-  $('plCount').textContent = L.length ? `${L.length} ${L.length === 1 ? 'song' : 'songs'} · ${done} learned` : '';
+  $('plCount').textContent = L.length ? tr('pl.count', { n: L.length, d: done }) : '';
   $('plTools').hidden = !L.length;
   $('plEmpty').hidden = !!L.length;
   $('plAddCur').disabled = !S.vid || L.some(x => x.id === S.vid);
   $('plList').innerHTML = L.map((x, i) => {
     const t = titleOf(x.id), a = authorOf(x.id), n = secCount(x.id);
-    const meta = [a, n ? n + (n === 1 ? ' saved part' : ' saved parts') : ''].filter(Boolean).join(' · ');
+    const meta = [a, n ? tr('savedParts', { n }) : ''].filter(Boolean).join(' · ');
     return `<li class="pl${x.id === S.vid ? ' cur' : ''}${x.done ? ' done' : ''}" data-id="${x.id}">
-      <span class="grip" data-grip aria-label="Drag to reorder" title="Drag to reorder"><svg class="i" viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="3"/></svg></span>
-      <button class="pl-go" data-go="${x.id}"><span class="idx num">${i + 1}</span><span class="thumb"><img src="${thumb(x.id)}" alt="" loading="lazy" decoding="async"></span><span class="pl-t"><b>${esc(shown(x.id))}</b><small>${x.blocked ? '<em>Can’t be played outside YouTube</em>' : esc(meta)}</small></span></button>
-      <button class="btn sq ghost chk${x.done ? ' on' : ''}" data-done="${x.id}" aria-pressed="${!!x.done}" aria-label="${x.done ? 'Mark as not learned' : 'Mark as learned'}" title="${x.done ? 'Learned' : 'Mark as learned'}"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
-      <button class="btn sq ghost" data-rm="${x.id}" aria-label="Remove from playlist" title="Remove"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="grip" data-grip aria-label="${esc(tr('drag'))}" title="${esc(tr('drag'))}"><svg class="i" viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01" stroke-width="3"/></svg></span>
+      <button class="pl-go" data-go="${x.id}"><span class="idx num">${i + 1}</span><span class="thumb"><img src="${thumb(x.id)}" alt="" loading="lazy" decoding="async"></span><span class="pl-t"><b>${esc(shown(x.id))}</b><small>${x.blocked ? '<em>' + esc(tr('blockedItem')) + '</em>' : esc(meta)}</small></span></button>
+      <button class="btn sq ghost chk${x.done ? ' on' : ''}" data-done="${x.id}" aria-pressed="${!!x.done}" aria-label="${esc(tr(x.done ? 'unmarkLearned' : 'markLearned'))}" title="${esc(tr(x.done ? 'learned' : 'markLearned'))}"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
+      <button class="btn sq ghost" data-rm="${x.id}" aria-label="${esc(tr('removeFromPl'))}" title="${esc(tr('remove'))}"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </li>`;
   }).join('');
   L.forEach(x => wantTitle(x.id));
@@ -171,8 +172,8 @@ function render() {
   $('rcList').innerHTML = R.map(x => {
     const t = titleOf(x.id), inPl = L.some(p => p.id === x.id);
     return `<li class="pl${x.id === S.vid ? ' cur' : ''}" data-id="${x.id}">
-      <button class="pl-go" data-go="${x.id}"><span class="thumb"><img src="${thumb(x.id)}" alt="" loading="lazy" decoding="async"></span><span class="pl-t"><b>${esc(shown(x.id))}</b><small>${esc(ago(x.at))}</small></span></button>
-      <button class="btn ghost addpl" data-addpl="${x.id}" ${inPl ? 'disabled' : ''} title="${inPl ? 'Already in playlist' : 'Add to playlist'}">${inPl ? 'In playlist' : '+ Playlist'}</button>
+      <button class="pl-go" data-go="${x.id}"><span class="thumb"><img src="${thumb(x.id)}" alt="" loading="lazy" decoding="async"></span><span class="pl-t"><b>${esc(shown(x.id))}</b><small>${esc(ago(x.at, tr))}</small></span></button>
+      <button class="btn ghost addpl" data-addpl="${x.id}" ${inPl ? 'disabled' : ''} title="${esc(tr(inPl ? 'inPl.t' : 'addPl.t'))}">${esc(tr(inPl ? 'inPl' : 'addPl'))}</button>
     </li>`;
   }).join('');
   R.forEach(x => wantTitle(x.id));
@@ -261,13 +262,13 @@ export function init(a) {
   $('plPrev').onclick = () => step(-1);
   let sureClr = 0;
   $('plClear').onclick = () => {
-    if (Date.now() - sureClr > 3000) { sureClr = Date.now(); $('plClear').textContent = 'Clear all?'; setTimeout(() => { $('plClear').textContent = 'Clear'; }, 3000); return; }
-    sureClr = 0; $('plClear').textContent = 'Clear'; setPL([]); render(); toast('Playlist cleared');
+    if (Date.now() - sureClr > 3000) { sureClr = Date.now(); $('plClear').textContent = tr('clearAll?'); setTimeout(() => { $('plClear').textContent = tr('clear'); }, 3000); return; }
+    sureClr = 0; $('plClear').textContent = tr('clear'); setPL([]); render(); toast(tr('plCleared'));
   };
   $('plClearDone').onclick = () => {
     const L = getPL(), keep = L.filter(x => !x.done);
-    if (keep.length === L.length) { toast('No learned songs to remove'); return; }
-    setPL(keep); render(); toast((L.length - keep.length) + ' learned removed');
+    if (keep.length === L.length) { toast(tr('noLearned')); return; }
+    setPL(keep); render(); toast(tr('learnedRemoved', { n: L.length - keep.length }));
   };
   $('plList').addEventListener('click', e => {
     const go = e.target.closest('[data-go]'), dn = e.target.closest('[data-done]'), rm = e.target.closest('[data-rm]');
@@ -282,8 +283,8 @@ export function init(a) {
   });
   let sureRc = 0;
   $('rcClear').onclick = () => {
-    if (Date.now() - sureRc > 3000) { sureRc = Date.now(); $('rcClear').textContent = 'Clear history?'; setTimeout(() => { $('rcClear').textContent = 'Clear history'; }, 3000); return; }
-    sureRc = 0; $('rcClear').textContent = 'Clear history'; setRC([]); render();
+    if (Date.now() - sureRc > 3000) { sureRc = Date.now(); $('rcClear').textContent = tr('rc.clear?'); setTimeout(() => { $('rcClear').textContent = tr('rc.clear'); }, 3000); return; }
+    sureRc = 0; $('rcClear').textContent = tr('rc.clear'); setRC([]); render();
   };
   // broken thumbnails: hide the image, keep the row
   for (const l of [$('plList'), $('rcList')]) l.addEventListener('error', e => { if (e.target.tagName === 'IMG') e.target.classList.add('broken'); }, true);
@@ -300,5 +301,6 @@ export function init(a) {
     const L = getPL(); const x = L.find(y => y.id === id); if (x && !x.blocked) { x.blocked = true; setPL(L); render(); }
   });
   app.on('sections', render);
+  app.on('lang', render);
   render();
 }

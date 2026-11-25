@@ -1,5 +1,6 @@
 // Saved sections (A-B loops) per video, each with optional notes for chords / tabs.
-import { $, esc, store, fmt, toast, uid, debounce } from './util.js?v=202611260109';
+import { $, esc, store, fmt, toast, uid, debounce } from './util.js?v=202611260618';
+import { t as tr } from './i18n.js?v=202611260618';
 
 let app, S;
 let lastSig = '';
@@ -29,6 +30,7 @@ export function init(a) {
   app = a; S = a.S;
   app.on('video', () => { openNotes.clear(); render(true); });
   app.on('ab', () => render(false));
+  app.on('lang', () => render(true));
 
   $('secs').addEventListener('click', e => {
     const go = e.target.closest('[data-go]'), del = e.target.closest('[data-del]'), nt = e.target.closest('[data-notes]');
@@ -43,7 +45,7 @@ export function init(a) {
     } else if (del) {
       const id = del.dataset.del;
       if (!del.classList.contains('sure')) {
-        del.classList.add('sure'); del.textContent = 'Delete?';
+        del.classList.add('sure'); del.textContent = tr('delete?');
         clearTimeout(sureT[id]); sureT[id] = setTimeout(() => { if (del.isConnected) render(true); }, 3000);
         return;
       }
@@ -70,10 +72,10 @@ export function init(a) {
     e.preventDefault();
     if (!S.vid || S.A == null || S.B == null) return;
     const L = getSecs();
-    const name = $('secName').value.trim() || 'Section ' + (L.length + 1);
+    const name = $('secName').value.trim() || tr('sectionN', { n: L.length + 1 });
     const x = { id: uid(), n: name.slice(0, 40), a: +S.A.toFixed(2), b: +S.B.toFixed(2), s: S.rate, note: '' };
     L.push(x); L.sort((p, q) => p.a - q.a);
-    save(L); S.active = x.id; $('secName').value = ''; render(true); toast('Saved “' + x.n + '”');
+    save(L); S.active = x.id; $('secName').value = ''; render(true); toast(tr('saved', { n: x.n }));
   });
   render(true);
 }
@@ -93,9 +95,9 @@ function render(force) {
     const first = has ? x.note.trim().split('\n')[0].slice(0, 60) : '';
     return `<li class="sec${S.active === x.id ? ' act' : ''}" data-id="${esc(x.id)}">
       <button class="go" data-go="${esc(x.id)}"><span class="n">${esc(x.n)}</span><span class="m num">${fmt(x.a)} – ${fmt(x.b)} · ${Math.round(x.s * 100)}%</span>${has && !open ? `<span class="pv">${esc(first)}</span>` : ''}</button>
-      <button class="btn sq ghost nt${has ? ' has' : ''}${open ? ' on' : ''}" data-notes="${esc(x.id)}" aria-label="Notes for ${esc(x.n)}" aria-expanded="${open}" title="Chords / tab notes"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg></button>
-      <button class="btn sq ghost del" data-del="${esc(x.id)}" aria-label="Delete ${esc(x.n)}"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
-      ${open ? `<div class="notes"><textarea data-note="${esc(x.id)}" rows="4" maxlength="4000" spellcheck="false" placeholder="Chords, tab, fingering…  e.g.  Am  F  C  G"></textarea></div>` : ''}
+      <button class="btn sq ghost nt${has ? ' has' : ''}${open ? ' on' : ''}" data-notes="${esc(x.id)}" aria-label="${esc(tr('notesFor', { n: x.n }))}" aria-expanded="${open}" title="${esc(tr('notes.t'))}"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg></button>
+      <button class="btn sq ghost del" data-del="${esc(x.id)}" aria-label="${esc(tr('deleteX', { n: x.n }))}"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+      ${open ? `<div class="notes"><textarea data-note="${esc(x.id)}" rows="4" maxlength="4000" spellcheck="false" placeholder="${esc(tr('notes.ph'))}"></textarea></div>` : ''}
     </li>`;
   }).join('');
   // set textarea values as text (never markup)

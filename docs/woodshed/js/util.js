@@ -73,12 +73,12 @@ export function toast(msg) {
   clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600);
 }
 
-export function ago(ts) {
+export function ago(ts, tr) {
   const d = (Date.now() - ts) / 1000;
-  if (!isFinite(d) || d < 60) return 'just now';
-  if (d < 3600) return Math.floor(d / 60) + 'm ago';
-  if (d < 86400) return Math.floor(d / 3600) + 'h ago';
-  if (d < 86400 * 30) return Math.floor(d / 86400) + 'd ago';
+  if (!isFinite(d) || d < 60) return tr('ago.now');
+  if (d < 3600) return tr('ago.m', { n: Math.floor(d / 60) });
+  if (d < 86400) return tr('ago.h', { n: Math.floor(d / 3600) });
+  if (d < 86400 * 30) return tr('ago.d', { n: Math.floor(d / 86400) });
   return new Date(ts).toLocaleDateString();
 }
 

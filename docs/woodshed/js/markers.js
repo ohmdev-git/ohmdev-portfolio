@@ -1,5 +1,6 @@
 // Song-structure markers (Intro / Verse / Solo …) per video: a lane above the timeline + an editable list.
-import { $, esc, store, fmt, toast, uid, debounce, touchOnly } from './util.js?v=202611260109';
+import { $, esc, store, fmt, toast, uid, debounce, touchOnly } from './util.js?v=202611260618';
+import { t as tr } from './i18n.js?v=202611260618';
 
 let app, S;
 let M = [];
@@ -16,24 +17,24 @@ const saveSoon = debounce(writeM, 300);
 function save() { saveSoon.flush(); writeM(S.vid, M); }
 
 export function addAtPlayhead() {
-  if (!app.ok()) { toast('Load a song first'); return; }
+  if (!app.ok()) { toast(tr('loadSongFirst')); return; }
   const t = app.now();
-  if (M.some(x => Math.abs(x.t - t) < 0.3)) { toast('There’s already a marker here'); return; }
-  if (M.length >= 60) { toast('That’s a lot of markers — remove some first'); return; }
-  const x = { id: uid(), t, n: 'Marker ' + (M.length + 1) };
+  if (M.some(x => Math.abs(x.t - t) < 0.3)) { toast(tr('mk.exists')); return; }
+  if (M.length >= 60) { toast(tr('mk.many')); return; }
+  const x = { id: uid(), t, n: tr('markerN', { n: M.length + 1 }) };
   M.push(x); M.sort((a, b) => a.t - b.t); save();
   renderList(true); renderLane();
   const inp = $('mkList').querySelector(`input[data-name="${CSS.escape(x.id)}"]`);
   if (inp && !touchOnly()) { inp.focus(); inp.select(); }
-  else toast('Marker added at ' + fmt(t));
+  else toast(tr('mk.added', { t: fmt(t) }));
 }
 
 function loopFrom(id) {
   const i = M.findIndex(x => x.id === id); if (i < 0 || !app.ok()) return;
   const a = M[i].t, b = i + 1 < M.length ? M[i + 1].t : S.dur;
-  if (!(b > a + app.MIN)) { toast(S.dur ? 'This marker is too close to the next one' : 'Wait for the video to load'); return; }
+  if (!(b > a + app.MIN)) { toast(tr(S.dur ? 'mk.close' : 'waitLoad')); return; }
   app.setAB(a, b); app.setLoop(true, true); app.seek(a);
-  toast('Looping “' + (M[i].n || 'part') + '”');
+  toast(tr('loopingX', { n: M[i].n || tr('part') }));
 }
 
 export function init(a) {
@@ -41,6 +42,7 @@ export function init(a) {
   app.on('video', () => { saveSoon.flush(); load(); renderList(true); renderLane(); });
   app.on('timeline', renderLane);
   app.on('dur', () => softList());
+  app.on('lang', () => { lastListSig = ''; softList(); renderLane(); });
   if (window.ResizeObserver) new ResizeObserver(() => renderLane()).observe($('lane'));
   $('mkAdd').onclick = addAtPlayhead;
   $('mkAddT').onclick = addAtPlayhead;
@@ -81,10 +83,10 @@ function renderList(force) {
   $('mkList').innerHTML = M.map((x, i) => {
     const end = i + 1 < M.length ? M[i + 1].t : S.dur;
     return `<li class="mk">
-      <button class="mk-t num" data-seek="${esc(x.id)}" title="Jump here">${fmt(x.t)}</button>
-      <input class="mk-n" data-name="${esc(x.id)}" list="mkNames" maxlength="24" aria-label="Marker name" spellcheck="false">
-      <button class="btn sq ghost" data-loop="${esc(x.id)}" title="Loop from here to ${i + 1 < M.length ? 'the next marker' : 'the end'}" aria-label="Loop this part" ${end > x.t + app.MIN ? '' : 'disabled'}><svg class="i" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>
-      <button class="btn sq ghost" data-del="${esc(x.id)}" aria-label="Delete marker" title="Delete"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <button class="mk-t num" data-seek="${esc(x.id)}" title="${esc(tr('jumpHere'))}">${fmt(x.t)}</button>
+      <input class="mk-n" data-name="${esc(x.id)}" list="mkNames" maxlength="24" aria-label="${esc(tr('mk.name'))}" spellcheck="false">
+      <button class="btn sq ghost" data-loop="${esc(x.id)}" title="${esc(tr(i + 1 < M.length ? 'mk.loopNext' : 'mk.loopEnd'))}" aria-label="${esc(tr('mk.loopAria'))}" ${end > x.t + app.MIN ? '' : 'disabled'}><svg class="i" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>
+      <button class="btn sq ghost" data-del="${esc(x.id)}" aria-label="${esc(tr('mk.del'))}" title="${esc(tr('del'))}"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </li>`;
   }).join('');
   $('mkList').querySelectorAll('input[data-name]').forEach(inp => { const x = M.find(y => y.id === inp.dataset.name); inp.value = x ? x.n : ''; });
@@ -101,6 +103,6 @@ function renderLane() {
     const nx = i + 1 < vis.length ? app.pct(vis[i + 1].t) : 100;
     const room = Math.max(0, (nx - p) / 100 * W - 6);
     const label = room >= 26 ? `<span style="max-width:${Math.floor(room - 12)}px">${esc(x.n || '•')}</span>` : '';
-    return `<button class="flag" data-mk="${esc(x.id)}" style="left:${p}%" title="${esc((x.n || 'Marker') + ' · ' + fmt(x.t))}">${label}</button>`;
+    return `<button class="flag" data-mk="${esc(x.id)}" style="left:${p}%" title="${esc((x.n || tr('marker')) + ' · ' + fmt(x.t))}">${label}</button>`;
   }).join('');
 }
