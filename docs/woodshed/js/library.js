@@ -1,6 +1,6 @@
 // Playlist (songs to learn today) + Recent history + title cache (YouTube oEmbed).
-import { $, esc, store, toast, ago, parseMany, isId, clamp } from './util.js?v=202611260104';
-import { count as secCount } from './sections.js?v=202611260104';
+import { $, esc, store, toast, ago, parseMany, isId, clamp } from './util.js?v=202611260109';
+import { count as secCount } from './sections.js?v=202611260109';
 
 const K_PL = 'woodshed:playlist', K_RC = 'woodshed:recent', K_TI = 'woodshed:titles';
 const MAX_PL = 300, MAX_RC = 40, MAX_TI = 600;
@@ -141,7 +141,8 @@ export function step(dir) {
 
 /* ---------- rendering ---------- */
 let rT = 0;
-function scheduleRender() { cancelAnimationFrame(rT); rT = requestAnimationFrame(render); }
+// timer, not requestAnimationFrame: rAF pauses in background tabs, which left titles stuck on “Loading…”
+function scheduleRender() { clearTimeout(rT); rT = setTimeout(render, 60); }
 const shown = id => titleOf(id) || (failedAt[id] ? 'YouTube video · ' + id : 'Loading title…');
 const thumb = id => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
 let dragging = false;

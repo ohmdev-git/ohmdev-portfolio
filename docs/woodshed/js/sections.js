@@ -1,5 +1,5 @@
 // Saved sections (A-B loops) per video, each with optional notes for chords / tabs.
-import { $, esc, store, fmt, toast, uid, debounce } from './util.js?v=202611260104';
+import { $, esc, store, fmt, toast, uid, debounce } from './util.js?v=202611260109';
 
 let app, S;
 let lastSig = '';
