@@ -1,11 +1,11 @@
 // Woodshed — player, loop, timeline, speed, keyboard. Feature modules plug in through `app`.
-import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611260618';
-import * as Library from './library.js?v=202611260618';
-import * as Markers from './markers.js?v=202611260618';
-import * as Sections from './sections.js?v=202611260618';
-import * as Met from './metronome.js?v=202611260618';
-import * as Trainer from './trainer.js?v=202611260618';
-import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611260618';
+import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611260628';
+import * as Library from './library.js?v=202611260628';
+import * as Markers from './markers.js?v=202611260628';
+import * as Sections from './sections.js?v=202611260628';
+import * as Met from './metronome.js?v=202611260628';
+import * as Trainer from './trainer.js?v=202611260628';
+import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611260628';
 
 const MIN = 0.2;               // shortest loop, seconds
 const PRESETS = [50, 60, 70, 75, 80, 85, 90, 100];
@@ -15,7 +15,7 @@ const S = {
   api: false, P: null, ready: false, pending: null,
   vid: '', A: null, B: null, loop: false, gap: 0, reps: 0,
   rate: 1, rcT: null, dur: 0, state: -1, gapT: null, loadAt: 0, rateAt: 0, reapplied: false, active: null,
-  zoom: false, zv: null, step: 0.1, err: null, ci: 0
+  zoom: false, zv: null, step: 0.1, err: null, ci: 0, hold: 0
 };
 
 /* ---------- tiny event bus for feature modules ---------- */
@@ -96,6 +96,10 @@ function openVideo(id, t) {
 }
 function onState(st) {
   S.state = st;
+  if (S.hold) {
+    if (st === 1 || st === 3) { if (Date.now() - S.hold < 2500) { S.P.pauseVideo(); return; } S.hold = 0; }
+    else if (st === 2) S.hold = 0;
+  }
   const playing = st === 1 || st === 3;
   $('playIco').innerHTML = playing ? '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>' : '<path d="M8 5.5v13l11-6.5z"/>';
   $('play').setAttribute('aria-label', tr(playing ? 'pause' : 'play'));
@@ -145,15 +149,21 @@ function noteReq() { S.rateAt = Date.now(); onRate(); }
 const ok = () => S.ready && !!S.vid;
 const now = () => ok() ? (S.P.getCurrentTime() || 0) : 0;
 const loopOn = () => S.loop && S.A != null && S.B != null;
-function seek(t) { if (ok()) S.P.seekTo(clamp(t, 0, S.dur || 1e9), true); }
-function play() { if (ok()) S.P.playVideo(); }
+// YouTube starts playing when you seek a video that hasn't been started yet (cued).
+// We never want a seek to start playback, so remember to hold it paused.
+function seek(t) {
+  if (!ok()) return;
+  if (S.state === 5 || S.state === -1) S.hold = Date.now();
+  S.P.seekTo(clamp(t, 0, S.dur || 1e9), true);
+}
+function play() { if (ok()) { S.hold = 0; S.P.playVideo(); } }
 function clearGap() { if (S.gapT) { clearTimeout(S.gapT); S.gapT = null; Met.cancelCountIn(); } }
 // silence (gap) and/or count-in clicks, then start the song; returns false if nothing to wait for
 function waitThenPlay(gapSec) {
   const beats = Met.countBeats(S.ci);
   if (!(gapSec > 0) && !beats) return false;
   clearGap();
-  const go = () => { S.gapT = null; if (ok()) S.P.playVideo(); };
+  const go = () => { S.gapT = null; play(); };
   const afterGap = () => {
     if (beats) { const ms = Met.countIn(beats); if (ms < 0) { go(); return; } S.gapT = setTimeout(go, ms); }
     else go();
@@ -164,7 +174,7 @@ function waitThenPlay(gapSec) {
 }
 function togglePlay() {
   if (!ok()) { if (!S.vid) $('url').focus(); return; }
-  if (S.gapT) { clearGap(); S.P.playVideo(); return; }
+  if (S.gapT) { clearGap(); play(); return; }
   if (S.state === 1 || S.state === 3) S.P.pauseVideo();
   else {
     if (loopOn()) {
@@ -173,7 +183,7 @@ function togglePlay() {
       // count-in before the first rep too, when starting from the loop start
       if (S.ci && Math.abs(now() - S.A) < 0.3 && waitThenPlay(0)) return;
     }
-    S.P.playVideo();
+    play();
   }
 }
 function jump(d) {
@@ -195,7 +205,7 @@ function wrap(ended) {
     if (!ended) S.P.pauseVideo();
     waitThenPlay(S.gap);
   } else {
-    if (ended) S.P.playVideo();
+    if (ended) play();
     Met.onWrapped();
   }
 }
