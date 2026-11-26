@@ -6,15 +6,15 @@
 <meta name="description" content="Woodshed — loop any part of a YouTube song, slow it down, and learn it by ear.">
 <meta name="theme-color" content="#09090b">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="manifest" href="manifest.webmanifest?v=202611261446">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=202611261446">
+<link rel="manifest" href="manifest.webmanifest?v=202611261520">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=202611261520">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Woodshed">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Woodshed — Learn any song by ear</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2309090b'/%3E%3Cpath d='M7 20V12M12 23V9M17 19v-6M22 22V10' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='16' r='2.4' fill='%23ff3b30'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/app.css?v=202611261446">
+<link rel="stylesheet" href="css/app.css?v=202611261520">
 </head>
 <body>
 <div class="banner" id="fileWarn" hidden data-i18n="fileWarn">You opened this page as a local file. YouTube blocks playback from local files. Host it (e.g. GitHub Pages) or run a local web server.</div>
@@ -114,6 +114,46 @@
     <div class="voicings" id="thVoicings"></div>
     <div id="thKey" class="keypane" hidden></div>
     <p class="credit" data-i18n="th.credit"></p>
+  </section>
+
+  <section class="card practice" id="practice" data-i18n-aria="pr.aria">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-pr="quiz" class="on" data-i18n="pr.quiz">Fretboard notes</button>
+      <button role="tab" data-pr="ear" data-i18n="pr.ear">Ear training</button>
+    </div>
+    <div id="prQuiz">
+      <div class="prctl">
+        <div class="seg" id="qzMode"><button data-m="name" class="on" data-i18n="qz.mName">Name the note</button><button data-m="find" data-i18n="qz.mFind">Find the note</button></div>
+        <div class="seg" id="qzRange"><span data-i18n="qz.frets">Frets</span><button data-r="5">0–5</button><button data-r="12" class="on">0–12</button><button data-r="15">0–15</button></div>
+        <label class="tog"><input type="checkbox" id="qzNat" checked><span data-i18n="qz.nat">Natural notes only</span></label>
+        <div class="seg strs" id="qzStr"></div>
+      </div>
+      <div class="qzbar">
+        <b id="qzPrompt" aria-live="polite"></b>
+        <span class="num" id="qzTime" hidden></span>
+        <span class="num qzsc" id="qzScore"></span>
+        <span class="num qzsc" id="qzBest"></span>
+        <span class="qzbtns"><button class="btn small ghost" id="qzSkip" data-i18n="qz.skip">Skip</button><button class="btn small pri" id="qzStart" data-i18n="qz.start">Start 60-second round</button></span>
+      </div>
+      <div class="qzres" id="qzResult" hidden></div>
+      <div class="fbwrap"><svg id="qzFb" class="fb qz" role="img" data-i18n-aria="qz.board"></svg></div>
+      <div class="qznotes" id="qzNotes"></div>
+    </div>
+    <div id="prEar" hidden>
+      <div class="prctl">
+        <div class="seg" id="earEx"><button data-x="iv" class="on" data-i18n="ear.xIv">Intervals</button><button data-x="ch" data-i18n="ear.xCh">Chords</button><button data-x="deg" data-i18n="ear.xDeg">Scale degrees</button></div>
+        <div class="seg" id="earLvl"><span data-i18n="ear.level">Level</span><button data-l="1" class="on" data-i18n="ear.l1">Easy</button><button data-l="2" data-i18n="ear.l2">Medium</button><button data-l="3" data-i18n="ear.l3">Hard</button></div>
+        <div class="seg" id="earDir"><button data-d="up" class="on" data-i18n="ear.up">Up</button><button data-d="down" data-i18n="ear.down">Down</button><button data-d="harm" data-i18n="ear.harm">Together</button></div>
+      </div>
+      <div class="earbar">
+        <button class="btn pri" id="earPlay" data-i18n="ear.start">Start</button>
+        <button class="btn" id="earReplay" disabled><svg class="i" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7"/></svg><span data-i18n="ear.replay">Hear again</span></button>
+        <span class="num" id="earStat"></span>
+      </div>
+      <p class="hint" id="earHint"></p>
+      <div class="earans" id="earAns"></div>
+      <div class="earmsg" id="earMsg" hidden aria-live="polite"></div>
+    </div>
   </section>
 
   <section class="card lib" data-i18n-aria="lib.aria">
@@ -273,6 +313,6 @@
 </main>
 <footer data-i18n="footer"></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script type="module" src="js/main.js?v=202611261446"></script>
+<script type="module" src="js/main.js?v=202611261520"></script>
 </body>
 </html>

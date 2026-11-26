@@ -1,14 +1,15 @@
 // Woodshed — player, loop, timeline, speed, keyboard. Feature modules plug in through `app`.
-import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261446';
-import * as Library from './library.js?v=202611261446';
-import * as Markers from './markers.js?v=202611261446';
-import * as Sections from './sections.js?v=202611261446';
-import * as Met from './metronome.js?v=202611261446';
-import * as Trainer from './trainer.js?v=202611261446';
-import * as Theory from './theory.js?v=202611261446';
-import * as Backup from './backup.js?v=202611261446';
-import * as Pedal from './pedal.js?v=202611261446';
-import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261446';
+import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261520';
+import * as Library from './library.js?v=202611261520';
+import * as Markers from './markers.js?v=202611261520';
+import * as Sections from './sections.js?v=202611261520';
+import * as Met from './metronome.js?v=202611261520';
+import * as Trainer from './trainer.js?v=202611261520';
+import * as Theory from './theory.js?v=202611261520';
+import * as Backup from './backup.js?v=202611261520';
+import * as Pedal from './pedal.js?v=202611261520';
+import * as Practice from './practice.js?v=202611261520';
+import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261520';
 
 const MIN = 0.2;               // shortest loop, seconds
 const PRESETS = [50, 60, 70, 75, 80, 85, 90, 100];
@@ -604,7 +605,7 @@ Object.assign(app, { ok, now, togglePlay, seek, userSeek, play, setAB, setLoop, 
 if (location.protocol === 'file:') $('fileWarn').hidden = false;
 S.gap = [0, 1, 2, 3].includes(store.get('woodshed:gap', 0)) ? store.get('woodshed:gap', 0) : 0;
 $('gap').querySelectorAll('[data-g]').forEach(x => x.classList.toggle('on', +x.dataset.g === S.gap));
-Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app); Theory.init(app); Backup.init(app); Pedal.init(app, ACTIONS, isTypingTarget);
+Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app); Theory.init(app); Backup.init(app); Pedal.init(app, ACTIONS, isTypingTarget); Practice.init(app, Theory._state);
 setCountIn(+store.get('woodshed:countin', 0));
 relang();
 app.on('titles', renderTitle);

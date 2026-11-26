@@ -1,6 +1,6 @@
 // Backup & restore: every "woodshed:" key in localStorage, as one JSON file.
-import { $, esc, toast } from './util.js?v=202611261446';
-import { t as tr } from './i18n.js?v=202611261446';
+import { $, esc, toast } from './util.js?v=202611261520';
+import { t as tr } from './i18n.js?v=202611261520';
 
 const PREFIX = 'woodshed:';
 const MAX_BYTES = 5 * 1024 * 1024;

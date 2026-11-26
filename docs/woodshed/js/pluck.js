@@ -1,5 +1,5 @@
 // Plucked-string sound (Karplus–Strong), rendered once per note and cached.
-import { audio } from './metronome.js?v=202611261446';
+import { audio } from './metronome.js?v=202611261520';
 
 const cache = new Map();
 function buffer(ctx, midi) {
@@ -37,6 +37,18 @@ export function play(midis, gap = 0.035) {
   midis.forEach((m, i) => {
     const s = ctx.createBufferSource(); s.buffer = buffer(ctx, m);
     s.connect(out(ctx)); s.start(t0 + i * gap);
+    live.push(s); s.onended = () => { live = live.filter(x => x !== s); };
+  });
+  return true;
+}
+// a little sequence: [{ m: [midis], t: seconds from now, gap: strum gap }]
+export function playSeq(events) {
+  const ctx = audio(); if (!ctx) return false;
+  stopAll();
+  const t0 = ctx.currentTime + 0.04;
+  for (const ev of events) ev.m.forEach((m, i) => {
+    const s = ctx.createBufferSource(); s.buffer = buffer(ctx, m);
+    s.connect(out(ctx)); s.start(t0 + ev.t + i * (ev.gap || 0));
     live.push(s); s.onended = () => { live = live.filter(x => x !== s); };
   });
   return true;

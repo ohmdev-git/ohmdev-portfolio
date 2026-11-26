@@ -1,9 +1,10 @@
 // Chords / scales / song key: fretboard diagrams for every position, chord boxes, diatonic chords.
 // Data is built from tonal (MIT) and chords-db (MIT) by tools/build-theory.mjs.
-import { $, esc, store, toast } from './util.js?v=202611261446';
-import { t as tr } from './i18n.js?v=202611261446';
-import { generate, TUNINGS, boxBase, sounds } from './voicings.js?v=202611261446';
-import * as Pluck from './pluck.js?v=202611261446';
+import { $, esc, store, toast } from './util.js?v=202611261520';
+import { t as tr } from './i18n.js?v=202611261520';
+import { generate, TUNINGS, boxBase, sounds } from './voicings.js?v=202611261520';
+import * as Pluck from './pluck.js?v=202611261520';
+import { boardSVG } from './fretboard.js?v=202611261520';
 
 let app, S, D = null, DBV = null;
 const VER = new URL(import.meta.url).search;
@@ -59,35 +60,10 @@ function voicingsFor(ri, id) {
 }
 
 /* ---------- fretboard ---------- */
-const W = 1000, H = 210, L = 52, RGT = 14, TOP = 26, GAP = 30;
-const fx = n => L + (W - L - RGT) * (1 - Math.pow(2, -n / 12)) / (1 - Math.pow(2, -FRETS / 12));
-const mirror = x => (TH.lefty ? W - x : x);
-const noteX = f => (f === 0 ? L - 20 : (fx(f - 1) + fx(f)) / 2);
-const sy = s => TOP + (5 - s) * GAP;           // high e on top
 function drawBoard(marks) {
-  const tun = TUNINGS[TH.tuning];
-  const spell = speller([]);
-  let g = '';
-  // board
-  const x0 = Math.min(mirror(L), mirror(fx(FRETS))), x1 = Math.max(mirror(L), mirror(fx(FRETS)));
-  g += `<rect class="wood" x="${x0}" y="${TOP - 12}" width="${x1 - x0}" height="${GAP * 5 + 24}" rx="4"/>`;
-  for (const f of [3, 5, 7, 9, 15]) g += `<circle class="inlay" cx="${mirror(noteX(f))}" cy="${TOP + GAP * 2.5}" r="6"/>`;
-  g += `<circle class="inlay" cx="${mirror(noteX(12))}" cy="${TOP + GAP * 1.5}" r="6"/><circle class="inlay" cx="${mirror(noteX(12))}" cy="${TOP + GAP * 3.5}" r="6"/>`;
-  for (let f = 1; f <= FRETS; f++) g += `<line class="fret" x1="${mirror(fx(f))}" y1="${TOP - 12}" x2="${mirror(fx(f))}" y2="${TOP + GAP * 5 + 12}"/>`;
-  g += `<line class="nut" x1="${mirror(L)}" y1="${TOP - 12}" x2="${mirror(L)}" y2="${TOP + GAP * 5 + 12}"/>`;
-  for (let s = 0; s < 6; s++) {
-    g += `<line class="str" style="stroke-width:${0.8 + (5 - s) * 0.32}px" x1="${x0}" y1="${sy(s)}" x2="${x1}" y2="${sy(s)}"/>`;
-    g += `<text class="slab" x="${TH.lefty ? W - 12 : 12}" y="${sy(s) + 4}">${spell(tun[s] % 12)}</text>`;
-  }
-  for (const f of [1, 3, 5, 7, 9, 12, 15]) g += `<text class="fnum" x="${mirror(noteX(f))}" y="${H - 6}">${f}</text>`;
-  // notes
-  for (const m of marks) {
-    const x = mirror(m.f < 0 ? L - 20 : noteX(m.f)), y = sy(m.s);
-    if (m.f < 0) { g += `<text class="mute" x="${x}" y="${y + 4}">×</text>`; continue; }
-    g += `<g class="n ${m.kind}${m.dim ? ' dim' : ''}"><circle cx="${x}" cy="${y}" r="11"/><text x="${x}" y="${y + 3.8}">${esc(m.label)}</text></g>`;
-  }
-  $('fb').innerHTML = g;
-  $('fb').setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const b = boardSVG({ tuning: TH.tuning, lefty: TH.lefty, frets: FRETS, marks, strName: speller([]) });
+  $('fb').innerHTML = b.svg;
+  $('fb').setAttribute('viewBox', `0 0 ${b.W} ${b.H}`);
 }
 // every place on the neck a set of pitch classes appears
 function allMarks(rootPc, pcs, labelOf, kindOf) {
