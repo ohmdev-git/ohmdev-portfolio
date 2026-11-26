@@ -1,6 +1,6 @@
 // Speed trainer: start slow, add a few % every N loop reps until the goal speed.
-import { $, store, clamp, toast } from './util.js?v=202611261434';
-import { t } from './i18n.js?v=202611261434';
+import { $, store, clamp, toast } from './util.js?v=202611261446';
+import { t } from './i18n.js?v=202611261446';
 
 let app, S;
 const T = { on: false, from: 60, to: 100, step: 5, every: 2, since: 0 };

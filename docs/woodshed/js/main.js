@@ -1,14 +1,14 @@
 // Woodshed — player, loop, timeline, speed, keyboard. Feature modules plug in through `app`.
-import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261434';
-import * as Library from './library.js?v=202611261434';
-import * as Markers from './markers.js?v=202611261434';
-import * as Sections from './sections.js?v=202611261434';
-import * as Met from './metronome.js?v=202611261434';
-import * as Trainer from './trainer.js?v=202611261434';
-import * as Theory from './theory.js?v=202611261434';
-import * as Backup from './backup.js?v=202611261434';
-import * as Pedal from './pedal.js?v=202611261434';
-import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261434';
+import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261446';
+import * as Library from './library.js?v=202611261446';
+import * as Markers from './markers.js?v=202611261446';
+import * as Sections from './sections.js?v=202611261446';
+import * as Met from './metronome.js?v=202611261446';
+import * as Trainer from './trainer.js?v=202611261446';
+import * as Theory from './theory.js?v=202611261446';
+import * as Backup from './backup.js?v=202611261446';
+import * as Pedal from './pedal.js?v=202611261446';
+import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261446';
 
 const MIN = 0.2;               // shortest loop, seconds
 const PRESETS = [50, 60, 70, 75, 80, 85, 90, 100];
@@ -18,7 +18,7 @@ const S = {
   api: false, P: null, ready: false, pending: null,
   vid: '', A: null, B: null, loop: false, gap: 0, reps: 0,
   rate: 1, rcT: null, dur: 0, state: -1, gapT: null, loadAt: 0, rateAt: 0, reapplied: false, active: null,
-  zoom: false, zv: null, step: 0.1, err: null, ci: 0, hold: 0, ad: false, adSeen: 0, adLast: null
+  zoom: false, zv: null, step: 0.1, err: null, ci: 0, hold: 0, ad: false, unst: false, adRef: null
 };
 
 /* ---------- tiny event bus for feature modules ---------- */
@@ -99,7 +99,8 @@ function openVideo(id, t) {
 }
 function onState(st) {
   S.state = st;
-  if (S.ad && st !== -1) { S.ad = false; S.adSeen = 0; renderStat(); }
+  if (st === -1) S.unst = true;
+  else if (st !== 3) { S.unst = false; S.adRef = null; if (S.ad) { S.ad = false; renderStat(); } }
   if (S.hold) {
     if (st === 1 || st === 3) { if (Date.now() - S.hold < 2500) { S.P.pauseVideo(); return; } S.hold = 0; }
     else if (st === 2) S.hold = 0;
@@ -568,16 +569,17 @@ document.addEventListener('pointerup', e => { const b = e.target.closest && e.ta
 setInterval(() => {
   if (!ok()) return;
   const t = S.P.getCurrentTime() || 0, d = S.P.getDuration() || 0;
-  // YouTube may play an ad first: the player stays "unstarted" (-1) while the ad's
-  // own clock runs. Don't show the ad's time as the song's.
-  if (S.state === -1 && !S.ad) {
-    const moving = t > 0.05 && S.adLast != null && t > S.adLast + 0.005;
-    S.adLast = t;
-    if (moving) { if (++S.adSeen > 15) { S.ad = true; $('loopState').textContent = tr('adPlaying'); $('stat').classList.remove('live'); } }
-    else S.adSeen = 0;
-    if (S.dur > 0) return;   // "unstarted" with a known song: its clock may be an ad's, keep the song's position on screen
-  } else if (S.state !== -1) { S.adSeen = 0; S.adLast = null; }
-  if (S.ad) return;
+  // YouTube may play an ad first: the player sits in "unstarted" (-1, with short
+  // buffering blips) while the ad's own clock runs. Keep the song's position on
+  // screen, and say what's happening once the clock has clearly been moving.
+  if (S.unst && S.dur > 0) {
+    if (S.adRef == null) S.adRef = { t, at: Date.now() };
+    else if (!S.ad && S.state === -1 && t - S.adRef.t > 0.4 && Date.now() - S.adRef.at > 500) {
+      S.ad = true; $('loopState').textContent = tr('adPlaying'); $('stat').classList.remove('live');
+    }
+    return;
+  }
+  S.adRef = null;
   if (d > 0 && Math.abs(d - S.dur) > 0.01) {
     S.dur = d;
     if (S.B != null && S.B > d) setAB(S.A, d); else renderAB();
