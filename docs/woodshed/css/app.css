@@ -391,3 +391,16 @@ select:focus-visible{outline:2px solid var(--rec);outline-offset:1px}
   .kprog .rn{min-width:0;flex-basis:100%}
   .thhead b{font-size:22px}
 }
+
+/* ---------- v5: data card ---------- */
+#dataCard .hint{margin:0 0 4px}
+.bkprev{margin-top:12px;padding:12px;border-radius:12px;background:var(--s2);border:1px solid var(--line)}
+.bkprev[hidden]{display:none}
+.bkfile{margin:0 0 8px;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.bkt{width:100%;border-collapse:collapse;font-size:13px}
+.bkt th{font-weight:400;color:var(--dim);text-align:right;padding:2px 0 4px}
+.bkt td{padding:3px 0;border-top:1px solid var(--line)}
+.bkt td.num{text-align:right;width:70px}
+#appInstall{width:100%;margin-bottom:6px}
+#appInstall[hidden]{display:none}
+#appHint{margin:0}

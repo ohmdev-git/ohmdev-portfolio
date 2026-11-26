@@ -1,12 +1,13 @@
 // Woodshed — player, loop, timeline, speed, keyboard. Feature modules plug in through `app`.
-import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261235';
-import * as Library from './library.js?v=202611261235';
-import * as Markers from './markers.js?v=202611261235';
-import * as Sections from './sections.js?v=202611261235';
-import * as Met from './metronome.js?v=202611261235';
-import * as Trainer from './trainer.js?v=202611261235';
-import * as Theory from './theory.js?v=202611261235';
-import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261235';
+import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261339';
+import * as Library from './library.js?v=202611261339';
+import * as Markers from './markers.js?v=202611261339';
+import * as Sections from './sections.js?v=202611261339';
+import * as Met from './metronome.js?v=202611261339';
+import * as Trainer from './trainer.js?v=202611261339';
+import * as Theory from './theory.js?v=202611261339';
+import * as Backup from './backup.js?v=202611261339';
+import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261339';
 
 const MIN = 0.2;               // shortest loop, seconds
 const PRESETS = [50, 60, 70, 75, 80, 85, 90, 100];
@@ -500,6 +501,14 @@ document.addEventListener('keydown', e => {
   else handled = false;
   if (handled) e.preventDefault();
 });
+// Clicking the YouTube player moves keyboard focus into its iframe, and then every
+// shortcut (and foot-switch key) goes to YouTube instead of us. Take focus back.
+window.addEventListener('blur', () => {
+  setTimeout(() => {
+    const ae = document.activeElement;
+    if (ae && ae.tagName === 'IFRAME' && ae.closest('.screen')) { ae.blur(); window.focus(); }
+  }, 0);
+});
 // stop Space from also "clicking" a focused button on keyup
 document.addEventListener('keyup', e => { if ((e.key === ' ' || e.key === 'Spacebar') && (e.target.tagName === 'BUTTON' || (e.target.tagName === 'INPUT' && /^(checkbox|radio)$/.test(e.target.type)))) e.preventDefault(); });
 // mouse clicks shouldn't leave focus on buttons (keeps Space for play/pause)
@@ -533,7 +542,7 @@ Object.assign(app, { ok, now, seek, userSeek, play, setAB, setLoop, setRate, loa
 if (location.protocol === 'file:') $('fileWarn').hidden = false;
 S.gap = [0, 1, 2, 3].includes(store.get('woodshed:gap', 0)) ? store.get('woodshed:gap', 0) : 0;
 $('gap').querySelectorAll('[data-g]').forEach(x => x.classList.toggle('on', +x.dataset.g === S.gap));
-Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app); Theory.init(app);
+Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app); Theory.init(app); Backup.init(app);
 setCountIn(+store.get('woodshed:countin', 0));
 relang();
 app.on('titles', renderTitle);
@@ -542,4 +551,10 @@ renderRate(); renderAB(); renderStat(); renderTitle();
 if (!openFromHash()) {
   const last = store.get('woodshed:last', null);
   if (isId(last)) { $('url').value = 'https://youtu.be/' + last; loadVideo({ id: last, t: 0 }, false); }
+}
+
+/* ---------- offline / install support ---------- */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname))) {
+  const reg = () => navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (document.readyState === 'complete') reg(); else window.addEventListener('load', reg);
 }

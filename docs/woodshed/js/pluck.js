@@ -1,5 +1,5 @@
 // Plucked-string sound (Karplus–Strong), rendered once per note and cached.
-import { audio } from './metronome.js?v=202611261235';
+import { audio } from './metronome.js?v=202611261339';
 
 const cache = new Map();
 function buffer(ctx, midi) {
