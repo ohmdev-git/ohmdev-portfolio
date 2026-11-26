@@ -1,6 +1,6 @@
 // Metronome (Web Audio look-ahead scheduler), tap tempo, and count-in clicks.
-import { $, store, clamp, toast } from './util.js?v=202611260628';
-import { t } from './i18n.js?v=202611260628';
+import { $, store, clamp, toast } from './util.js?v=202611261235';
+import { t } from './i18n.js?v=202611261235';
 
 let app, S;
 let ctx = null, master = null;

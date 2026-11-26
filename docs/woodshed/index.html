@@ -8,7 +8,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Woodshed — Learn any song by ear</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2309090b'/%3E%3Cpath d='M7 20V12M12 23V9M17 19v-6M22 22V10' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='16' r='2.4' fill='%23ff3b30'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/app.css?v=202611260628">
+<link rel="stylesheet" href="css/app.css?v=202611261235">
 </head>
 <body>
 <div class="banner" id="fileWarn" hidden data-i18n="fileWarn">You opened this page as a local file. YouTube blocks playback from local files. Host it (e.g. GitHub Pages) or run a local web server.</div>
@@ -77,6 +77,36 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <section class="card theory" id="theory" data-i18n-aria="th.aria">
+    <div class="tabs" role="tablist">
+      <button role="tab" data-th="chords" class="on" data-i18n="th.chords">Chords</button>
+      <button role="tab" data-th="scales" data-i18n="th.scales">Scales</button>
+      <button role="tab" data-th="key" data-i18n="th.key">Song key</button>
+      <div class="tabs-r"><button class="btn ghost small" id="thPlay" data-i18n-title="th.hear.t"><svg class="i" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><span data-i18n="th.hear">Hear it</span></button></div>
+    </div>
+    <div class="thmsg" id="thMsg" hidden></div>
+    <div class="roots" id="thRoots" role="group" data-i18n-aria="th.root"></div>
+    <div id="thChordsCtl"><div class="types" id="thTypes"></div></div>
+    <div id="thScalesCtl" hidden>
+      <label class="selrow"><span data-i18n="th.scale">Scale</span><select id="thScale"></select></label>
+      <div class="seg" id="thPos"></div>
+    </div>
+    <div id="thKeyCtl" hidden>
+      <div class="seg" id="thMode"><button data-m="major" class="on" data-i18n="th.major">Major</button><button data-m="minor" data-i18n="th.minor">Minor</button></div>
+      <div class="seg" id="thSev"><button data-sev="0" class="on" data-i18n="th.triads">Triads</button><button data-sev="1" data-i18n="th.sevenths">7th chords</button></div>
+    </div>
+    <div class="thhead"><b id="thName"></b><span class="num" id="thNotes"></span><span class="num" id="thFormula"></span><small id="thSub"></small></div>
+    <div class="fbwrap"><svg id="fb" class="fb" role="img" data-i18n-aria="th.board"></svg></div>
+    <div class="thopts">
+      <div class="seg" id="thLabels"><span data-i18n="th.labels">Show</span><button data-l="notes" class="on" data-i18n="th.notes">Notes</button><button data-l="iv" data-i18n="th.intervals">Intervals</button></div>
+      <label class="selrow"><span data-i18n="th.tuning">Tuning</span><select id="thTuning"><option value="std" data-i18n="tun.std">Standard (E)</option><option value="eb" data-i18n="tun.eb">Half step down (Eb)</option><option value="dropd" data-i18n="tun.dropd">Drop D</option></select></label>
+      <label class="tog"><input type="checkbox" id="thLefty"><span data-i18n="th.lefty">Left-handed</span></label>
+    </div>
+    <div class="voicings" id="thVoicings"></div>
+    <div id="thKey" class="keypane" hidden></div>
+    <p class="credit" data-i18n="th.credit"></p>
   </section>
 
   <section class="card lib" data-i18n-aria="lib.aria">
@@ -213,6 +243,6 @@
 </main>
 <footer data-i18n="footer"></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script type="module" src="js/main.js?v=202611260628"></script>
+<script type="module" src="js/main.js?v=202611261235"></script>
 </body>
 </html>

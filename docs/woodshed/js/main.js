@@ -1,11 +1,12 @@
 // Woodshed — player, loop, timeline, speed, keyboard. Feature modules plug in through `app`.
-import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611260628';
-import * as Library from './library.js?v=202611260628';
-import * as Markers from './markers.js?v=202611260628';
-import * as Sections from './sections.js?v=202611260628';
-import * as Met from './metronome.js?v=202611260628';
-import * as Trainer from './trainer.js?v=202611260628';
-import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611260628';
+import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261235';
+import * as Library from './library.js?v=202611261235';
+import * as Markers from './markers.js?v=202611261235';
+import * as Sections from './sections.js?v=202611261235';
+import * as Met from './metronome.js?v=202611261235';
+import * as Trainer from './trainer.js?v=202611261235';
+import * as Theory from './theory.js?v=202611261235';
+import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261235';
 
 const MIN = 0.2;               // shortest loop, seconds
 const PRESETS = [50, 60, 70, 75, 80, 85, 90, 100];
@@ -532,7 +533,7 @@ Object.assign(app, { ok, now, seek, userSeek, play, setAB, setLoop, setRate, loa
 if (location.protocol === 'file:') $('fileWarn').hidden = false;
 S.gap = [0, 1, 2, 3].includes(store.get('woodshed:gap', 0)) ? store.get('woodshed:gap', 0) : 0;
 $('gap').querySelectorAll('[data-g]').forEach(x => x.classList.toggle('on', +x.dataset.g === S.gap));
-Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app);
+Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app); Theory.init(app);
 setCountIn(+store.get('woodshed:countin', 0));
 relang();
 app.on('titles', renderTitle);

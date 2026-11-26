@@ -1,6 +1,6 @@
 // Song-structure markers (Intro / Verse / Solo …) per video: a lane above the timeline + an editable list.
-import { $, esc, store, fmt, toast, uid, debounce, touchOnly } from './util.js?v=202611260628';
-import { t as tr } from './i18n.js?v=202611260628';
+import { $, esc, store, fmt, toast, uid, debounce, touchOnly } from './util.js?v=202611261235';
+import { t as tr } from './i18n.js?v=202611261235';
 
 let app, S;
 let M = [];
