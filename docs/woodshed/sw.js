@@ -1,8 +1,8 @@
 // Woodshed service worker: makes the site installable and lets the practice tools open offline.
 // Only this site's own files are cached — YouTube, titles and thumbnails always go to the network.
-const VERSION = '202611261339';
+const VERSION = '202611261416';
 const CACHE = 'woodshed-' + VERSION;
-const FILES = ["./", "data/theory.json?v=202611261339", "data/voicings.json?v=202611261339", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png?v=202611261339", "css/app.css?v=202611261339", "js/backup.js?v=202611261339", "js/i18n.js?v=202611261339", "js/library.js?v=202611261339", "js/main.js?v=202611261339", "js/markers.js?v=202611261339", "js/metronome.js?v=202611261339", "js/pluck.js?v=202611261339", "js/sections.js?v=202611261339", "js/theory.js?v=202611261339", "js/trainer.js?v=202611261339", "js/util.js?v=202611261339", "js/voicings.js?v=202611261339", "manifest.webmanifest?v=202611261339"];
+const FILES = ["./", "data/theory.json?v=202611261416", "data/voicings.json?v=202611261416", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png?v=202611261416", "css/app.css?v=202611261416", "js/backup.js?v=202611261416", "js/i18n.js?v=202611261416", "js/library.js?v=202611261416", "js/main.js?v=202611261416", "js/markers.js?v=202611261416", "js/metronome.js?v=202611261416", "js/pedal.js?v=202611261416", "js/pluck.js?v=202611261416", "js/sections.js?v=202611261416", "js/theory.js?v=202611261416", "js/trainer.js?v=202611261416", "js/util.js?v=202611261416", "js/voicings.js?v=202611261416", "manifest.webmanifest?v=202611261416"];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

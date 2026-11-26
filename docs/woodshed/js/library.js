@@ -1,7 +1,7 @@
 // Playlist (songs to learn today) + Recent history + title cache (YouTube oEmbed).
-import { $, esc, store, toast, ago, parseMany, isId, clamp } from './util.js?v=202611261339';
-import { t as tr } from './i18n.js?v=202611261339';
-import { count as secCount } from './sections.js?v=202611261339';
+import { $, esc, store, toast, ago, parseMany, isId, clamp } from './util.js?v=202611261416';
+import { t as tr } from './i18n.js?v=202611261416';
+import { count as secCount } from './sections.js?v=202611261416';
 
 const K_PL = 'woodshed:playlist', K_RC = 'woodshed:recent', K_TI = 'woodshed:titles';
 const MAX_PL = 300, MAX_RC = 40, MAX_TI = 600;

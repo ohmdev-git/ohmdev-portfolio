@@ -1,6 +1,6 @@
 // Saved sections (A-B loops) per video, each with optional notes for chords / tabs.
-import { $, esc, store, fmt, toast, uid, debounce } from './util.js?v=202611261339';
-import { t as tr } from './i18n.js?v=202611261339';
+import { $, esc, store, fmt, toast, uid, debounce } from './util.js?v=202611261416';
+import { t as tr } from './i18n.js?v=202611261416';
 
 let app, S;
 let lastSig = '';
@@ -24,6 +24,27 @@ export function getSecs(vid) {
   return Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && isFinite(x.a) && isFinite(x.b) && x.id) : [];
 }
 export function count(vid) { return getSecs(vid).length; }
+function openSec(x) {
+  if (!x || !app.ok()) return false;
+  app.setAB(x.a, x.b); S.active = x.id; app.setRate(x.s * 100); app.setLoop(true, true); app.seek(x.a); app.play(); render(false);
+  return true;
+}
+// previous / next saved section (foot switch). Returns the section opened, or null.
+export function step(dir) {
+  if (!app || !app.ok()) return null;
+  const L = getSecs().slice().sort((p, q) => p.a - q.a || p.b - q.b);
+  if (!L.length) { toast(tr('pd.noSecs')); return null; }
+  let i = L.findIndex(x => x.id === S.active), j;
+  if (i >= 0) j = i + dir;
+  else {
+    const t = app.now();
+    if (dir > 0) { j = L.findIndex(x => x.a > t + 0.25); if (j < 0) j = L.length; }
+    else { j = -1; for (let k = L.length - 1; k >= 0; k--) if (L[k].a < t - 0.25) { j = k; break; } }
+  }
+  if (j < 0 || j >= L.length) { toast(tr(dir > 0 ? 'pd.lastSec' : 'pd.firstSec')); return null; }
+  openSec(L[j]);
+  return L[j];
+}
 function save(L) { store.set(key(), L); app.emit('sections'); }
 
 export function init(a) {
@@ -35,8 +56,7 @@ export function init(a) {
   $('secs').addEventListener('click', e => {
     const go = e.target.closest('[data-go]'), del = e.target.closest('[data-del]'), nt = e.target.closest('[data-notes]');
     if (go) {
-      const x = getSecs().find(s => s.id === go.dataset.go); if (!x || !app.ok()) return;
-      app.setAB(x.a, x.b); S.active = x.id; app.setRate(x.s * 100); app.setLoop(true, true); app.seek(x.a); app.play(); render(false);
+      const x = getSecs().find(s => s.id === go.dataset.go); if (x) openSec(x);
     } else if (nt) {
       const id = nt.dataset.notes;
       if (openNotes.has(id)) openNotes.delete(id); else openNotes.add(id);

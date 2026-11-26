@@ -6,15 +6,15 @@
 <meta name="description" content="Woodshed — loop any part of a YouTube song, slow it down, and learn it by ear.">
 <meta name="theme-color" content="#09090b">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="manifest" href="manifest.webmanifest?v=202611261339">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=202611261339">
+<link rel="manifest" href="manifest.webmanifest?v=202611261416">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=202611261416">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Woodshed">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Woodshed — Learn any song by ear</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2309090b'/%3E%3Cpath d='M7 20V12M12 23V9M17 19v-6M22 22V10' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='16' r='2.4' fill='%23ff3b30'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/app.css?v=202611261339">
+<link rel="stylesheet" href="css/app.css?v=202611261416">
 </head>
 <body>
 <div class="banner" id="fileWarn" hidden data-i18n="fileWarn">You opened this page as a local file. YouTube blocks playback from local files. Host it (e.g. GitHub Pages) or run a local web server.</div>
@@ -49,6 +49,7 @@
           <div class="steps" id="steps"><span><b>1</b><i data-i18n="step1">Paste link</i></span><span><b>2</b><i data-i18n="step2">Set A–B</i></span><span><b>3</b><i data-i18n="step3">Slow it down</i></span></div>
         </div>
       </div>
+      <div class="pdhud" id="pdHud" hidden aria-live="polite"></div>
       <div class="cbadge" id="cbadge" hidden><b id="cbNum">1</b><span id="cbText"></span></div>
     </div>
     <div class="transport">
@@ -227,6 +228,18 @@
       <datalist id="mkNames"></datalist>
     </div>
 
+    <div class="card" id="pdCard">
+      <div class="ch"><h2 data-i18n="pd.title">Foot switch</h2></div>
+      <label class="tog"><input type="checkbox" id="pdOn"><span data-i18n="pd.use">Use a foot switch or remote</span></label>
+      <div id="pdBody" hidden>
+        <p class="hint" data-i18n="pd.info"></p>
+        <ul class="pds" id="pdList"></ul>
+        <div class="row"><button class="btn" id="pdMidi" hidden></button><button class="btn ghost" id="pdReset" data-i18n="pd.reset">Reset to defaults</button></div>
+        <p class="hint" id="pdMidiNo" data-i18n="pd.midiNo" hidden></p>
+        <p class="hint pdst" id="pdStatus" hidden></p>
+      </div>
+    </div>
+
     <div class="card" id="dataCard">
       <div class="ch"><h2 data-i18n="bk.title">Your data</h2></div>
       <p class="hint" data-i18n="bk.info"></p>
@@ -260,6 +273,6 @@
 </main>
 <footer data-i18n="footer"></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script type="module" src="js/main.js?v=202611261339"></script>
+<script type="module" src="js/main.js?v=202611261416"></script>
 </body>
 </html>

@@ -1,13 +1,14 @@
 // Woodshed — player, loop, timeline, speed, keyboard. Feature modules plug in through `app`.
-import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261339';
-import * as Library from './library.js?v=202611261339';
-import * as Markers from './markers.js?v=202611261339';
-import * as Sections from './sections.js?v=202611261339';
-import * as Met from './metronome.js?v=202611261339';
-import * as Trainer from './trainer.js?v=202611261339';
-import * as Theory from './theory.js?v=202611261339';
-import * as Backup from './backup.js?v=202611261339';
-import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261339';
+import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261416';
+import * as Library from './library.js?v=202611261416';
+import * as Markers from './markers.js?v=202611261416';
+import * as Sections from './sections.js?v=202611261416';
+import * as Met from './metronome.js?v=202611261416';
+import * as Trainer from './trainer.js?v=202611261416';
+import * as Theory from './theory.js?v=202611261416';
+import * as Backup from './backup.js?v=202611261416';
+import * as Pedal from './pedal.js?v=202611261416';
+import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261416';
 
 const MIN = 0.2;               // shortest loop, seconds
 const PRESETS = [50, 60, 70, 75, 80, 85, 90, 100];
@@ -474,20 +475,39 @@ function setStep(v) {
 }
 
 /* ---------- keyboard ---------- */
-document.addEventListener('keydown', e => {
-  if (e.ctrlKey || e.metaKey || e.altKey) return;
-  const tg = e.target, tag = tg.tagName;
-  const typing = tag === 'INPUT' && !['range', 'checkbox', 'radio', 'button', 'submit'].includes(tg.type);
-  if (tag === 'TEXTAREA' || tag === 'SELECT' || tg.isContentEditable || typing) return;
-  const k = e.key;
-  if (tag === 'INPUT' && (k.startsWith('Arrow') || k === 'Home' || k === 'End' || k === 'PageUp' || k === 'PageDown')) return;
-  let handled = true;
+// Actions shared by the keyboard and the foot switch.
+function needAB(fn) { return () => { if (S.A == null || S.B == null) { toast(tr('setABFirst')); return false; } fn(); return true; }; }
+function restartA() {
+  if (!ok()) return false;
+  clearGap();
+  if (S.A == null) { seek(0); play(); return true; }
+  seek(S.A);
+  if (loopOn() && S.ci && waitThenPlay(0)) return true;
+  play(); return true;
+}
+const ACTIONS = {
+  play: () => { togglePlay(); },
+  toA: () => { if (S.A == null) { toast(tr('setABFirst')); return false; } seek(S.A); },
+  restartA,
+  loop: needAB(() => setLoop(!S.loop)),
+  back: () => jump(-2),
+  fwd: () => jump(2),
+  prevSec: () => !!Sections.step(-1),
+  nextSec: () => !!Sections.step(1),
+  tap: () => { Met.tap(); },
+  met: () => { Met.toggle(); },
+  slower: () => setRate(S.rate * 100 - 5),
+  faster: () => setRate(S.rate * 100 + 5),
+  prevSong: () => Library.step(-1),
+  nextSong: () => Library.step(1)
+};
+function handleKey(k, e) {
   if (k === ' ' || k === 'Spacebar') togglePlay();
   else if (k === 'ArrowLeft') jump(e.shiftKey ? -5 : -2);
   else if (k === 'ArrowRight') jump(e.shiftKey ? 5 : 2);
   else if (k === 'a' || k === 'A') markA();
   else if (k === 'b' || k === 'B') markB();
-  else if (k === 'l' || k === 'L') { if (S.A == null || S.B == null) toast(tr('setABFirst')); else setLoop(!S.loop); }
+  else if (k === 'l' || k === 'L') ACTIONS.loop();
   else if (k === 'q' || k === 'Q') { if (S.A != null) seek(S.A); }
   else if (k === 'z' || k === 'Z') { if (S.A == null || S.B == null) toast(tr('setABFirst')); else setZoom(!S.zoom); }
   else if (k === 'm' || k === 'M') Markers.addAtPlayhead();
@@ -498,7 +518,36 @@ document.addEventListener('keydown', e => {
   else if (k === '[') setRate(S.rate * 100 - 5);
   else if (k === ']') setRate(S.rate * 100 + 5);
   else if (/^[03-9]$/.test(k)) setRate(k === '0' ? 100 : +k * 10);
-  else handled = false;
+  else return false;
+  return true;
+}
+// Non-Latin layouts (e.g. Thai Kedmanee) type other characters on the same keys:
+// fall back to the physical key so the shortcuts still work.
+function keyFromCode(code) {
+  let m;
+  if ((m = /^Key([A-Z])$/.exec(code || ''))) return m[1].toLowerCase();
+  if ((m = /^Digit([0-9])$/.exec(code || ''))) return m[1];
+  if (code === 'BracketLeft') return '[';
+  if (code === 'BracketRight') return ']';
+  return '';
+}
+function isTypingTarget(tg) {
+  if (!tg || !tg.tagName) return false;
+  const tag = tg.tagName;
+  const typing = tag === 'INPUT' && !['range', 'checkbox', 'radio', 'button', 'submit'].includes(tg.type);
+  return tag === 'TEXTAREA' || tag === 'SELECT' || !!tg.isContentEditable || typing;
+}
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tg = e.target, tag = tg.tagName;
+  if (isTypingTarget(tg)) return;
+  const k = e.key;
+  if (tag === 'INPUT' && (k.startsWith('Arrow') || k === 'Home' || k === 'End' || k === 'PageUp' || k === 'PageDown')) return;
+  let handled = handleKey(k, e);
+  if (!handled && k && k.length === 1) {
+    const alt = keyFromCode(e.code);
+    if (alt && alt !== k.toLowerCase() && !/^[a-z0-9]$/i.test(k)) handled = handleKey(alt, e);
+  }
   if (handled) e.preventDefault();
 });
 // Clicking the YouTube player moves keyboard focus into its iframe, and then every
@@ -536,13 +585,13 @@ setInterval(() => {
 }, 30);
 
 /* ---------- app API for modules ---------- */
-Object.assign(app, { ok, now, seek, userSeek, play, setAB, setLoop, setRate, loadVideo, openVideo, pct, inView, view, renderTitle, fmt, tr });
+Object.assign(app, { ok, now, togglePlay, seek, userSeek, play, setAB, setLoop, setRate, loadVideo, openVideo, pct, inView, view, renderTitle, fmt, tr });
 
 /* ---------- boot ---------- */
 if (location.protocol === 'file:') $('fileWarn').hidden = false;
 S.gap = [0, 1, 2, 3].includes(store.get('woodshed:gap', 0)) ? store.get('woodshed:gap', 0) : 0;
 $('gap').querySelectorAll('[data-g]').forEach(x => x.classList.toggle('on', +x.dataset.g === S.gap));
-Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app); Theory.init(app); Backup.init(app);
+Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app); Theory.init(app); Backup.init(app); Pedal.init(app, ACTIONS, isTypingTarget);
 setCountIn(+store.get('woodshed:countin', 0));
 relang();
 app.on('titles', renderTitle);
