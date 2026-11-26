@@ -1,6 +1,6 @@
 // Metronome (Web Audio look-ahead scheduler), tap tempo, and count-in clicks.
-import { $, store, clamp, toast } from './util.js?v=202611261520';
-import { t } from './i18n.js?v=202611261520';
+import { $, store, clamp, toast } from './util.js?v=202611261719';
+import { t } from './i18n.js?v=202611261719';
 
 let app, S;
 let ctx = null, master = null;
@@ -184,7 +184,7 @@ export function init(a) {
   $('bpmDown').onclick = () => setBpm(M.bpm - 1, true);
   $('bpmUp').onclick = () => setBpm(M.bpm + 1, true);
   $('bpmIn').addEventListener('change', () => setBpm($('bpmIn').value, true));
-  $('bpmIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('bpmIn').blur(); });
+  $('bpmIn').addEventListener('keydown', e => { if (e.key === 'Enter') { setBpm($('bpmIn').value, true); $('bpmIn').blur(); } });
   $('meterSeg').addEventListener('click', e => { const b = e.target.closest('[data-b]'); if (b) setBeats(+b.dataset.b); });
   $('metFollow').onchange = () => { M.follow = $('metFollow').checked; saveG(); render(); };
   $('metRealign').onchange = () => { M.realign = $('metRealign').checked; saveG(); };

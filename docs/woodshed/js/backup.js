@@ -1,6 +1,6 @@
 // Backup & restore: every "woodshed:" key in localStorage, as one JSON file.
-import { $, esc, toast } from './util.js?v=202611261520';
-import { t as tr } from './i18n.js?v=202611261520';
+import { $, esc, toast } from './util.js?v=202611261719';
+import { t as tr } from './i18n.js?v=202611261719';
 
 const PREFIX = 'woodshed:';
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -20,16 +20,17 @@ const parse = s => { try { return JSON.parse(s); } catch (e) { return undefined;
 
 // what a set of raw key/values contains, for the preview
 export function summarize(data) {
-  let songs = 0, parts = 0, markers = 0, notes = 0, keys = 0;
+  let songs = 0, parts = 0, markers = 0, notes = 0, keys = 0, chords = 0;
   const pl = parse(data[PREFIX + 'playlist']);
   if (Array.isArray(pl)) songs = pl.length;
   for (const [k, v] of Object.entries(data)) {
     const val = parse(v);
     if (k.startsWith(PREFIX + 'sections:') && Array.isArray(val)) { parts += val.length; notes += val.filter(x => x && typeof x.note === 'string' && x.note.trim()).length; }
     else if (k.startsWith(PREFIX + 'markers:') && Array.isArray(val)) markers += val.length;
+    else if (k.startsWith(PREFIX + 'chords:') && Array.isArray(val)) chords += val.length;
     else if (k.startsWith(PREFIX + 'key:') || k.startsWith(PREFIX + 'bpm:')) keys++;
   }
-  return { songs, parts, markers, notes, keys };
+  return { songs, parts, markers, notes, keys, chords };
 }
 
 /* ---------- export ---------- */
@@ -127,7 +128,7 @@ function showPreview(v, fileName) {
   $('bkPreview').innerHTML = `
     <p class="bkfile">${esc(fileName)}${when && !isNaN(when) ? ' · ' + esc(when.toLocaleString()) : ''}</p>
     <table class="bkt"><thead><tr><th></th><th>${esc(tr('bk.inFile'))}</th><th>${esc(tr('bk.here'))}</th></tr></thead><tbody>
-      ${[['bk.songs', 'songs'], ['bk.parts', 'parts'], ['bk.notes', 'notes'], ['bk.markers', 'markers'], ['bk.tempos', 'keys']].map(([lk, f]) => `<tr><td>${esc(tr(lk))}</td><td class="num">${s[f]}</td><td class="num">${cur[f]}</td></tr>`).join('')}
+      ${[['bk.songs', 'songs'], ['bk.parts', 'parts'], ['bk.notes', 'notes'], ['bk.markers', 'markers'], ['bk.chords', 'chords'], ['bk.tempos', 'keys']].map(([lk, f]) => `<tr><td>${esc(tr(lk))}</td><td class="num">${s[f]}</td><td class="num">${cur[f]}</td></tr>`).join('')}
     </tbody></table>
     ${v.skipped ? `<p class="hint">${esc(tr('bk.skipped', { n: v.skipped }))}</p>` : ''}
     <div class="row"><button class="btn pri" data-bk="merge">${esc(tr('bk.merge'))}</button><button class="btn" data-bk="replace">${esc(tr('bk.replace'))}</button><button class="btn ghost" data-bk="cancel">${esc(tr('cancel'))}</button></div>

@@ -1,8 +1,8 @@
 // Foot switch / remote: Bluetooth page-turner pedals (they type keys like PageDown or
 // ArrowDown) and, where the browser supports Web MIDI, MIDI pedals. Any key or MIDI
 // message can be taught to any action with "Set" (learn mode).
-import { $, esc, store, toast } from './util.js?v=202611261520';
-import { t as tr } from './i18n.js?v=202611261520';
+import { $, esc, store, toast } from './util.js?v=202611261719';
+import { t as tr } from './i18n.js?v=202611261719';
 
 const KEY = 'woodshed:pedal';
 export const ACTION_IDS = ['play', 'restartA', 'toA', 'loop', 'back', 'fwd', 'prevSec', 'nextSec', 'tap', 'met', 'slower', 'faster', 'prevSong', 'nextSong'];

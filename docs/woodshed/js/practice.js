@@ -1,10 +1,10 @@
 // Practice: fretboard note quiz + ear training. Sounds use the plucked-string synth;
 // chords are voiced with the same generator as the chord charts so they sound like a guitar.
-import { $, esc, store } from './util.js?v=202611261520';
-import { t as tr } from './i18n.js?v=202611261520';
-import { TUNINGS, generate } from './voicings.js?v=202611261520';
-import { boardSVG } from './fretboard.js?v=202611261520';
-import * as Pluck from './pluck.js?v=202611261520';
+import { $, esc, store } from './util.js?v=202611261719';
+import { t as tr } from './i18n.js?v=202611261719';
+import { TUNINGS, generate } from './voicings.js?v=202611261719';
+import { boardSVG } from './fretboard.js?v=202611261719';
+import * as Pluck from './pluck.js?v=202611261719';
 
 const FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 const SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];

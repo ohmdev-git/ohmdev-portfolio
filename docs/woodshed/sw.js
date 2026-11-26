@@ -1,8 +1,8 @@
 // Woodshed service worker: makes the site installable and lets the practice tools open offline.
 // Only this site's own files are cached — YouTube, titles and thumbnails always go to the network.
-const VERSION = '202611261520';
+const VERSION = '202611261719';
 const CACHE = 'woodshed-' + VERSION;
-const FILES = ["./", "data/theory.json?v=202611261520", "data/voicings.json?v=202611261520", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png?v=202611261520", "css/app.css?v=202611261520", "js/backup.js?v=202611261520", "js/fretboard.js?v=202611261520", "js/i18n.js?v=202611261520", "js/library.js?v=202611261520", "js/main.js?v=202611261520", "js/markers.js?v=202611261520", "js/metronome.js?v=202611261520", "js/pedal.js?v=202611261520", "js/pluck.js?v=202611261520", "js/practice.js?v=202611261520", "js/sections.js?v=202611261520", "js/theory.js?v=202611261520", "js/trainer.js?v=202611261520", "js/util.js?v=202611261520", "js/voicings.js?v=202611261520", "manifest.webmanifest?v=202611261520"];
+const FILES = ["./", "data/theory.json?v=202611261719", "data/voicings.json?v=202611261719", "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png?v=202611261719", "css/app.css?v=202611261719", "js/backup.js?v=202611261719", "js/chords.js?v=202611261719", "js/fretboard.js?v=202611261719", "js/i18n.js?v=202611261719", "js/library.js?v=202611261719", "js/main.js?v=202611261719", "js/markers.js?v=202611261719", "js/metronome.js?v=202611261719", "js/pedal.js?v=202611261719", "js/pluck.js?v=202611261719", "js/practice.js?v=202611261719", "js/sections.js?v=202611261719", "js/theory.js?v=202611261719", "js/trainer.js?v=202611261719", "js/util.js?v=202611261719", "js/voicings.js?v=202611261719", "manifest.webmanifest?v=202611261719"];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

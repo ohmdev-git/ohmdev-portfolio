@@ -1,15 +1,16 @@
 // Woodshed — player, loop, timeline, speed, keyboard. Feature modules plug in through `app`.
-import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261520';
-import * as Library from './library.js?v=202611261520';
-import * as Markers from './markers.js?v=202611261520';
-import * as Sections from './sections.js?v=202611261520';
-import * as Met from './metronome.js?v=202611261520';
-import * as Trainer from './trainer.js?v=202611261520';
-import * as Theory from './theory.js?v=202611261520';
-import * as Backup from './backup.js?v=202611261520';
-import * as Pedal from './pedal.js?v=202611261520';
-import * as Practice from './practice.js?v=202611261520';
-import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261520';
+import { $, clamp, esc, store, fmt, fmt2, parseYT, toast, isId } from './util.js?v=202611261719';
+import * as Library from './library.js?v=202611261719';
+import * as Markers from './markers.js?v=202611261719';
+import * as Sections from './sections.js?v=202611261719';
+import * as Met from './metronome.js?v=202611261719';
+import * as Trainer from './trainer.js?v=202611261719';
+import * as Theory from './theory.js?v=202611261719';
+import * as Backup from './backup.js?v=202611261719';
+import * as Pedal from './pedal.js?v=202611261719';
+import * as Practice from './practice.js?v=202611261719';
+import * as Chords from './chords.js?v=202611261719';
+import { t as tr, applyStatic, setLang, getLang } from './i18n.js?v=202611261719';
 
 const MIN = 0.2;               // shortest loop, seconds
 const PRESETS = [50, 60, 70, 75, 80, 85, 90, 100];
@@ -342,6 +343,9 @@ function shareLink() {
   let h = '#v=' + S.vid;
   if (S.A != null && S.B != null) h += '&a=' + S.A.toFixed(2) + '&b=' + S.B.toFixed(2);
   if (S.rate !== 1) h += '&s=' + S.rate;
+  const c = Chords.linkPart();
+  if (c) h += '&c=' + c;
+  shareLink.tooLong = c === null;
   return location.href.split('#')[0] + h;
 }
 $('share').addEventListener('click', () => {
@@ -354,14 +358,14 @@ $('share').addEventListener('click', () => {
     ta.remove(); toast(tr(done ? 'copied' : 'copyFail'));
     if (!done) history.replaceState(null, '', link);
   };
-  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(() => toast(tr('linkCopied')), fallback);
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(() => toast(tr(shareLink.tooLong ? 'cs.linkNoChords' : 'linkCopied')), fallback);
   else fallback();
 });
 function readHash() {
   const q = new URLSearchParams(location.hash.slice(1));
   const id = q.get('v'); if (!isId(id)) return null;
   const n = k => { const v = parseFloat(q.get(k)); return isFinite(v) && v >= 0 ? v : null; };
-  return { id, a: n('a'), b: n('b'), s: n('s') };
+  return { id, a: n('a'), b: n('b'), s: n('s'), c: q.get('c') };
 }
 function openFromHash() {
   const h = readHash(); if (!h) return false;
@@ -370,6 +374,7 @@ function openFromHash() {
   const hasAB = h.a != null && h.b != null && h.b > h.a;
   loadVideo({ id: h.id, t: hasAB ? h.a : 0 }, false);
   if (hasAB) { setAB(h.a, h.b); setLoop(true, true); }
+  if (h.c) Chords.fromLink(h.c);
   return true;
 }
 window.addEventListener('hashchange', openFromHash);
@@ -590,6 +595,7 @@ setInterval(() => {
   if (loopOn() && !S.gapT && S.state === 1 && t + 0.02 * S.rate >= S.B) wrap(false);
   $('now').textContent = fmt(t);
   $('dur').textContent = '/ ' + fmt(S.dur);
+  Chords.tick(t);
   if (S.dur) {
     const p = pct(t) + '%', vis = inView(t);
     $('head').style.left = p; $('head').style.display = vis ? 'block' : 'none';
@@ -605,7 +611,7 @@ Object.assign(app, { ok, now, togglePlay, seek, userSeek, play, setAB, setLoop, 
 if (location.protocol === 'file:') $('fileWarn').hidden = false;
 S.gap = [0, 1, 2, 3].includes(store.get('woodshed:gap', 0)) ? store.get('woodshed:gap', 0) : 0;
 $('gap').querySelectorAll('[data-g]').forEach(x => x.classList.toggle('on', +x.dataset.g === S.gap));
-Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app); Theory.init(app); Backup.init(app); Pedal.init(app, ACTIONS, isTypingTarget); Practice.init(app, Theory._state);
+Library.init(app); Markers.init(app); Sections.init(app); Met.init(app); Trainer.init(app); Theory.init(app); Backup.init(app); Pedal.init(app, ACTIONS, isTypingTarget); Practice.init(app, Theory._state); Chords.init(app);
 setCountIn(+store.get('woodshed:countin', 0));
 relang();
 app.on('titles', renderTitle);

@@ -1,10 +1,10 @@
 // Chords / scales / song key: fretboard diagrams for every position, chord boxes, diatonic chords.
 // Data is built from tonal (MIT) and chords-db (MIT) by tools/build-theory.mjs.
-import { $, esc, store, toast } from './util.js?v=202611261520';
-import { t as tr } from './i18n.js?v=202611261520';
-import { generate, TUNINGS, boxBase, sounds } from './voicings.js?v=202611261520';
-import * as Pluck from './pluck.js?v=202611261520';
-import { boardSVG } from './fretboard.js?v=202611261520';
+import { $, esc, store, toast } from './util.js?v=202611261719';
+import { t as tr } from './i18n.js?v=202611261719';
+import { generate, TUNINGS, boxBase, sounds } from './voicings.js?v=202611261719';
+import * as Pluck from './pluck.js?v=202611261719';
+import { boardSVG } from './fretboard.js?v=202611261719';
 
 let app, S, D = null, DBV = null;
 const VER = new URL(import.meta.url).search;
@@ -249,14 +249,29 @@ export async function init(a) {
     else if (b.dataset.sc) { TH.tab = 'scales'; TH.root = TH.key.r; TH.scale = b.dataset.sc; TH.pos = 0; }
     else if (b.id === 'thPlay') { hear(); return; }
     else return;
-    saveG(); render();
+    saveG(); render(); app.emit('theory');
   });
   $('thScale').addEventListener('change', e => { TH.scale = e.target.value; TH.pos = 0; saveG(); render(); e.target.blur(); });
   $('thTuning').addEventListener('change', e => { TH.tuning = TUNINGS[e.target.value] ? e.target.value : 'std'; TH.sel = 0; saveG(); render(); e.target.blur(); });
   $('thLefty').addEventListener('change', e => { TH.lefty = e.target.checked; saveG(); render(); });
-  app.on('video', () => { loadSongKey(); if (TH.tab === 'key') render(); });
+  app.on('video', () => { loadSongKey(); if (TH.tab === 'key') render(); app.emit('theory'); });
   app.on('lang', render);
   loadSongKey();
   if (await load()) render();
+  app.emit('theory');
 }
 export const _state = TH;
+export const data = () => D;
+// open a chord in the chart (chord sheet → theory panel)
+export function showChord(r, ty) {
+  if (!D || !Number.isInteger(r) || r < 0 || r > 11) return false;
+  TH.tab = 'chords'; TH.root = r; TH.type = D.types.some(x => x.id === ty) ? ty : ''; TH.sel = 0;
+  saveG(); render();
+  $('theory').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  return true;
+}
+export function showKey() {
+  if (!D) return;
+  TH.tab = 'key'; saveG(); render();
+  $('theory').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}

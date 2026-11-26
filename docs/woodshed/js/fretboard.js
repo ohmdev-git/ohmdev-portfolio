@@ -1,6 +1,6 @@
 // Neck diagram shared by the theory panel and the practice games. Returns SVG markup.
-import { esc } from './util.js?v=202611261520';
-import { TUNINGS } from './voicings.js?v=202611261520';
+import { esc } from './util.js?v=202611261719';
+import { TUNINGS } from './voicings.js?v=202611261719';
 
 const FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
 export const H = 210;

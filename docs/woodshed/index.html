@@ -6,15 +6,15 @@
 <meta name="description" content="Woodshed — loop any part of a YouTube song, slow it down, and learn it by ear.">
 <meta name="theme-color" content="#09090b">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<link rel="manifest" href="manifest.webmanifest?v=202611261520">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=202611261520">
+<link rel="manifest" href="manifest.webmanifest?v=202611261719">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=202611261719">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Woodshed">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Woodshed — Learn any song by ear</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2309090b'/%3E%3Cpath d='M7 20V12M12 23V9M17 19v-6M22 22V10' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3Ccircle cx='26' cy='16' r='2.4' fill='%23ff3b30'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/app.css?v=202611261520">
+<link rel="stylesheet" href="css/app.css?v=202611261719">
 </head>
 <body>
 <div class="banner" id="fileWarn" hidden data-i18n="fileWarn">You opened this page as a local file. YouTube blocks playback from local files. Host it (e.g. GitHub Pages) or run a local web server.</div>
@@ -66,7 +66,13 @@
         <div class="stat num" id="stat"><b id="loopState">Loop off</b><span id="loopCount">0 reps</span></div>
       </div>
       <div class="mini" id="mini" hidden aria-hidden="true"><div class="miniWin" id="miniWin"></div><div class="miniHead" id="miniHead"></div></div>
+      <div class="csnow" id="csNow" hidden>
+        <button class="cscur" id="csCur" data-i18n-title="cs.curT">–</button>
+        <div class="csprog"><i id="csFill"></i></div>
+        <span class="csnext"><small data-i18n="cs.next">Next</small><b id="csNext">–</b></span>
+      </div>
       <div class="lane" id="lane" data-i18n-aria="markers.aria"></div>
+      <div class="cslane" id="csLane" data-i18n-aria="cs.aria"></div>
       <div class="track" id="track" data-i18n-aria="timeline.aria">
         <div class="prog" id="prog"></div>
         <div class="region" id="region"></div>
@@ -79,9 +85,28 @@
       <div class="tfoot">
         <div class="hint" data-i18n="timeline.hint">Click to jump · drag to select a loop · drag the A / B tabs to fine-tune</div>
         <div class="tbtns">
+          <button class="btn ghost small" id="csEdBtn" aria-pressed="false" data-i18n-title="cs.btnT"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span data-i18n="cs.btn">Chords</span></button>
           <button class="btn ghost small" id="mkAddT" data-i18n-title="marker.t"><svg class="i" viewBox="0 0 24 24"><path d="M6 21V4M6 4h11l-2.5 4L17 12H6"/></svg><span data-i18n="marker">Marker</span></button>
           <button class="btn ghost small" id="zoomBtn" aria-pressed="false" data-i18n-title="zoom.t" disabled><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M11 8v6M8 11h6"/></svg><span data-i18n="zoom">Zoom</span></button>
         </div>
+      </div>
+      <div class="csed" id="csEd" hidden>
+        <div class="cslink" id="csLink" hidden><span id="csLinkMsg"></span><button class="btn small pri" id="csLinkUse" data-i18n="cs.linkUse">Use the link’s chords</button><button class="btn small ghost" id="csLinkKeep" data-i18n="cs.linkKeep">Keep mine</button></div>
+        <div class="cshead"><b data-i18n="cs.title">Chord sheet</b><span class="cskey" id="csKey"></span><div class="seg" id="csSev"><button data-sev="0" class="on" data-i18n="th.triads">Triads</button><button data-sev="1" data-i18n="th.sevenths">7ths</button></div><button class="btn small ghost" id="csDone" data-i18n="cs.done">Done</button></div>
+        <p class="hint" id="csPalHint"></p>
+        <div class="cspal" id="csPal"></div>
+        <div class="csother"><span data-i18n="cs.other">Other chord</span><select id="csRoot" data-i18n-aria="th.root"></select><select id="csType" data-i18n-aria="cs.typeAria"></select><button class="btn small" id="csAddOther" data-i18n="cs.add">Add</button></div>
+        <div class="cssel" id="csSel" hidden>
+          <b id="csSelName"></b><span class="num" id="csSelT"></span>
+          <button class="btn small ghost" id="csSelPrev" data-i18n-title="cs.earlier">−0.1s</button><button class="btn small ghost" id="csSelNext" data-i18n-title="cs.later">+0.1s</button>
+          <button class="btn small ghost" id="csSelHere" data-i18n="cs.here">Move to playhead</button>
+          <button class="btn small ghost" id="csSelChart" data-i18n="cs.chart">Chart</button>
+          <button class="btn small ghost" id="csSelDel" data-i18n="del">Delete</button>
+          <button class="btn sq ghost" id="csSelX" data-i18n-aria="cs.deselect"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <form class="csform" id="csForm"><input id="csText" maxlength="600" spellcheck="false" autocomplete="off" data-i18n-ph="cs.typePh" placeholder="Type chords, e.g. Am F C G"><button class="btn small" data-i18n="cs.fill">Fill the A–B loop</button></form>
+        <p class="hint" data-i18n="cs.fillHint"></p>
+        <div class="csfoot"><button class="btn small ghost" id="csUndo" data-i18n="cs.undo">Undo</button><button class="btn small ghost" id="csClear" data-i18n="cs.clear">Clear all chords</button></div>
       </div>
     </div>
   </section>
@@ -313,6 +338,6 @@
 </main>
 <footer data-i18n="footer"></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script type="module" src="js/main.js?v=202611261520"></script>
+<script type="module" src="js/main.js?v=202611261719"></script>
 </body>
 </html>
