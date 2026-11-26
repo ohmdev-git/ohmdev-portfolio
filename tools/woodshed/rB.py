@@ -292,6 +292,20 @@ async def main():
         ck('woodshed:pedal' in data['data'], 'backup includes foot switch settings')
         await ctx.close()
 
+        # ---------- YouTube pre-roll ad ----------
+        ctxA, pa, errsA = await newpage(b, init="window.__ad=2")
+        MA = lambda e: pa.evaluate('window.__mock.' + e)
+        await pa.goto(BASE + '#v=aaaaaaaaaa1&a=10&b=12'); await pa.wait_for_timeout(600)
+        await pa.click('#play'); await pa.wait_for_timeout(1200)
+        ck('ad' in (await pa.text_content('#loopState')).lower(), 'ad note shown', await pa.text_content('#loopState'))
+        ck((await pa.text_content('#now')).startswith('0:10'), 'song time not replaced by ad time', await pa.text_content('#now'))
+        await pa.wait_for_timeout(1600)
+        ck('ad' not in (await pa.text_content('#loopState')).lower() and await MA('st') == 1, 'ad note gone when song starts', await pa.text_content('#loopState'))
+        await pa.wait_for_timeout(2500)
+        ck(10 <= await MA('t') < 12.2 and (await pa.get_attribute('#play', 'aria-label')) == 'Pause', 'loop works after the ad', await MA('t'))
+        ck(not errsA, 'ad: no errors', errsA)
+        await ctxA.close()
+
         # ---------- no MIDI browser + mobile ----------
         ctx2, p2, errs2 = await newpage(b, vp=(390, 844), init=NO_MIDI, is_mobile=True, has_touch=True)
         await p2.goto(BASE); await p2.wait_for_timeout(500)

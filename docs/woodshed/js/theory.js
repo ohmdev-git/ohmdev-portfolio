@@ -1,9 +1,9 @@
 // Chords / scales / song key: fretboard diagrams for every position, chord boxes, diatonic chords.
 // Data is built from tonal (MIT) and chords-db (MIT) by tools/build-theory.mjs.
-import { $, esc, store, toast } from './util.js?v=202611261416';
-import { t as tr } from './i18n.js?v=202611261416';
-import { generate, TUNINGS, boxBase, sounds } from './voicings.js?v=202611261416';
-import * as Pluck from './pluck.js?v=202611261416';
+import { $, esc, store, toast } from './util.js?v=202611261434';
+import { t as tr } from './i18n.js?v=202611261434';
+import { generate, TUNINGS, boxBase, sounds } from './voicings.js?v=202611261434';
+import * as Pluck from './pluck.js?v=202611261434';
 
 let app, S, D = null, DBV = null;
 const VER = new URL(import.meta.url).search;
